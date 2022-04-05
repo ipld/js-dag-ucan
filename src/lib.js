@@ -5,6 +5,7 @@ import * as UTF8 from "./utf8.js"
 import { base64urlpad } from "multiformats/bases/base64"
 import { view } from "./view.js"
 
+export * from "./ucan.js"
 export const VERSION = "0.8.1"
 export const TYPE = "JWT"
 
