@@ -1,2 +1,3 @@
-# js-ucan
-UCAN codec for IPLD
+# @ipld/dag-ucan
+
+> UCAN codec for IPLD
