@@ -6,7 +6,7 @@ import * as Parser from "./parser.js"
 import * as Formatter from "./formatter.js"
 import { sha256 } from "multiformats/hashes/sha2"
 import { CID } from "multiformats/cid"
-import raw from "multiformats/codecs/raw"
+import * as RAW from "multiformats/codecs/raw"
 
 export * from "./ucan.js"
 import { code } from "./ucan.js"
@@ -78,7 +78,7 @@ export const decode = bytes => {
 export const link = async (ucan, { hasher = sha256 } = {}) => {
   const digest = await hasher.digest(encode(ucan))
   return /** @type {UCAN.Proof<C>} */ (
-    CID.createV1(ucan.type === "IPLD" ? code : raw.code, digest)
+    CID.createV1(ucan.type === "IPLD" ? code : RAW.code, digest)
   )
 }
 
