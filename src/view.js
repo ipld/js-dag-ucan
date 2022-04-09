@@ -1,72 +1,63 @@
 import * as UCAN from "./ucan.js"
-import * as json from "multiformats/codecs/json"
-import { CID } from "multiformats/cid"
 
 /**
  * @template {UCAN.Capability} C
- * @param {UCAN.IR<C>} data
- * @returns {UCAN.UCAN<C>}
+ * @template {"IPLD"|"JWT"} Type
+ * @extends {View<C>}
  */
-
-export const view = data => new UCANView(data)
-
-/**
- * @template {UCAN.Capability} C
- * @implements {UCAN.IR<C>}
- * @implements {UCAN.View<C>}
- */
-class UCANView {
+class View {
   /**
-   * @param {UCAN.IR<C>} data
+   * @param {Type} type
+   * @param {UCAN.Data<C>} data
    */
-  constructor({ header, body, signature }) {
+  constructor(type, { header, body, signature }) {
+    /** @readonly */
+    this.type = type
+    /** @readonly */
     this.header = header
+    /** @readonly */
     this.body = body
+    /** @readonly */
     this.signature = signature
   }
 
   get version() {
-    const { version } = decodeHeader(this.header)
-    Object.defineProperties(this, {
-      version: { value: version },
-    })
-
-    return version
+    return this.header.version
+  }
+  get algorithm() {
+    return this.header.algorithm
   }
 
-  /**
-   * @returns {UCAN.DID}
-   */
   get issuer() {
-    return decode(this).issuer
+    return this.body.issuer
   }
 
   /**
    * @returns {UCAN.DID}
    */
   get audience() {
-    return decode(this).audience
+    return this.body.audience
   }
 
   /**
    * @returns {C[]}
    */
   get capabilities() {
-    return decode(this).capabilities
+    return this.body.capabilities
   }
 
   /**
    * @returns {number}
    */
   get expiration() {
-    return decode(this).expiration
+    return this.body.expiration
   }
 
   /**
    * @returns {undefined|number}
    */
   get notBefore() {
-    return decode(this).notBefore
+    return this.body.notBefore
   }
 
   /**
@@ -74,78 +65,52 @@ class UCANView {
    */
 
   get nonce() {
-    return decode(this).nonce
+    return this.body.nonce
   }
 
   /**
    * @returns {UCAN.Fact[]}
    */
   get facts() {
-    return decode(this).facts || []
+    return this.body.facts
   }
 
   /**
-   * @returns {UCAN.Link<UCAN.UCAN, 1, UCAN.code>[]}
+   * @returns {UCAN.Proof[]}
    */
 
   get proofs() {
-    return decode(this).proofs
+    return this.body.proofs
   }
 }
 
 /**
  * @template {UCAN.Capability} C
- * @param {UCANView<C>} self
- * @returns {UCAN.View<C>}
+ * @extends {View<C, "JWT">}
  */
-const decode = self => {
-  const {
-    issuer,
-    audience,
-    capabilities,
-    expiration,
-    facts,
-    notBefore,
-    nonce,
-    proofs,
-  } = decodeBody(self.body)
-
-  return Object.defineProperties(self, {
-    issuer: { value: issuer },
-    audience: { value: audience },
-    capabilities: { value: capabilities },
-    expiration: { value: expiration },
-    facts: { value: facts },
-    notBefore: { value: notBefore },
-    nonce: { value: nonce },
-    proofs: { value: proofs },
-  })
-}
-
-/**
- * @param {UCAN.ByteView<UCAN.Header>} bytes
- * @returns {UCAN.Header}
- */
-const decodeHeader = bytes => {
-  const { alg, ucv } = json.decode(bytes)
-  return { algorithm: alg, version: ucv }
-}
-
-/**
- * @param {UCAN.ByteView<UCAN.Body>} bytes
- * @returns {UCAN.Body}
- */
-const decodeBody = bytes => {
-  const { iss, aud, att, exp, fct, nbpf, nnc, prf } = json.decode(bytes)
-
-  return {
-    issuer: iss,
-    audience: aud,
-    capabilities: att,
-    expiration: exp,
-    facts: fct,
-    notBefore: nbpf,
-    nonce: nnc,
-    proofs: prf.map(CID.parse),
+class JWTView extends View {
+  /**
+   *
+   * @param {UCAN.Data<C>} data
+   * @param {*} jwt
+   */
+  constructor(data, jwt) {
+    super("JWT", data)
+    this.jwt = jwt
   }
 }
+
+/**
+ * @template {UCAN.Capability} C
+ * @param {UCAN.Data<C>} data
+ * @returns {UCAN.View<C>}
+ */
+export const view = data => new View("IPLD", data)
+
+/**
+ * @template {UCAN.Capability} C
+ * @param {UCAN.Data<C>} data
+ * @param {UCAN.JWT<UCAN.Data<C>>} jwt
+ * @returns {UCAN.View<C>}
+ */
+export const jwt = (data, jwt) => new JWTView(data, jwt)
