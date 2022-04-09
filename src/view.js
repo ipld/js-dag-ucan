@@ -76,7 +76,7 @@ class View {
   }
 
   /**
-   * @returns {UCAN.Link<UCAN.UCAN, 1, UCAN.code>[]}
+   * @returns {UCAN.Proof[]}
    */
 
   get proofs() {
