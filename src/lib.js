@@ -6,6 +6,7 @@ import * as Parser from "./parser.js"
 import * as Formatter from "./formatter.js"
 import { sha256 } from "multiformats/hashes/sha2"
 import { CID } from "multiformats/cid"
+import * as RAW from "multiformats/codecs/raw"
 
 export * from "./ucan.js"
 import { code } from "./ucan.js"
@@ -14,6 +15,10 @@ import { code } from "./ucan.js"
 export const VERSION = "0.8.1"
 
 /**
+ * Encodes given UCAN (in either IPLD or JWT representation) and encodes it into
+ * corresponding bytes representation. UCAN in IPLD representation is encoded as
+ * DAG-CBOR which JWT representation is encoded as raw bytes of JWT string.
+ *
  * @template {UCAN.Capability} C
  * @param {UCAN.UCAN<C>} data
  * @returns {UCAN.ByteView<UCAN.UCAN<C>>}
@@ -41,6 +46,11 @@ export const encode = data =>
     : UTF8.encode(data.jwt)
 
 /**
+ * Decodes binary encoded UCAN. It assumes UCAN is in primary IPLD
+ * representation and attempts to decode it with DAG-CBOR, if that
+ * fails it falls back to secondary representation and parses it as
+ * a JWT.
+ *
  * @template {UCAN.Capability} C
  * @param {UCAN.ByteView<UCAN.UCAN<C>>} bytes
  * @returns {UCAN.View<C>}
@@ -56,18 +66,33 @@ export const decode = bytes => {
 }
 
 /**
+ * Convenience function to create a CID for the given UCAN. If UCAN is
+ * in JWT represetation get CID with RAW multicodec, while UCANs in IPLD
+ * representation get UCAN multicodec code.
+ *
  * @template {UCAN.Capability} C
  * @param {UCAN.UCAN<C>} ucan
  * @param {{hasher?: UCAN.MultihashHasher}} [options]
- * @returns {Promise<UCAN.Link<UCAN.Data<C>, 1, typeof code>>}
+ * @returns {Promise<UCAN.Proof<C>>}
  */
 export const link = async (ucan, { hasher = sha256 } = {}) => {
   const digest = await hasher.digest(encode(ucan))
-  return /** @type {any} */ (CID.createV1(code, digest))
+  return /** @type {UCAN.Proof<C>} */ (
+    CID.createV1(ucan.type === "IPLD" ? code : RAW.code, digest)
+  )
 }
 
 /**
- * Parse JWT formatted UCAN. Note than no validation takes place here.
+ * Parses UCAN formatted as JWT string. Returns UCAN view in IPLD representation
+ * when serailazing it back would produce original string, oherwise returns UCAN
+ * view in secondary JWT representation which is not as compact, but it retains
+ * key order and whitespaces so it could be formatted back to same JWT string.
+ * View will have `type` field with either `"IPLD"` or `"JWT"` value telling
+ * in which representation UCAN is.
+ *
+ * Note: Parsing does not perform validation of capabilities or semantics of the
+ * UCAN, it only ensures structure is spec compliant and throws `ParseError`
+ * if it is not.
  *
  * @template {UCAN.Capability} C
  * @param {UCAN.JWT<UCAN.Data<C>>} input
@@ -83,6 +108,8 @@ export const parse = input => {
 }
 
 /**
+ * Takes UCAN object and formats it into JWT string.
+ *
  * @template {UCAN.Capability} C
  * @param {UCAN.UCAN<C>} ucan
  * @returns {UCAN.JWT<UCAN.Data<C>>}
@@ -96,6 +123,10 @@ export const format = ucan => {
 }
 
 /**
+ * Creates a new signed token with a given `options.issuer`. If expiration is
+ * not set it defaults to 30 seconds from now. Returns UCAN in primary - IPLD
+ * representation.
+ *
  * @template {number} A
  * @template {UCAN.Capability} C
  * @param {UCAN.UCANOptions<C, A>} options

@@ -3,7 +3,7 @@ import * as UCAN from "../src/lib.js"
 import { assert } from "chai"
 import { alice, bob, mallory } from "./fixtures.js"
 import * as TSUCAN from "./ts-ucan.cjs"
-import * as raw from "multiformats/codecs/raw"
+import * as RAW from "multiformats/codecs/raw"
 import * as UTF8 from "../src/utf8.js"
 import { identity } from "multiformats/hashes/identity"
 import {
@@ -631,6 +631,9 @@ describe("ts-ucan compat", () => {
     })
 
     assert.equal(UCAN.format(ucan), jwt)
+
+    const cid = await UCAN.link(ucan)
+    assert.equal(cid.code, RAW.code)
   })
 
   it("can have inline proofs", async () => {
@@ -669,7 +672,7 @@ describe("ts-ucan compat", () => {
 
     const [proof] = ucan.proofs
 
-    assert.equal(proof.code, raw.code)
+    assert.equal(proof.code, RAW.code)
     assert.equal(proof.multihash.code, identity.code)
 
     assert.equal(UTF8.decode(proof.multihash.digest), root)

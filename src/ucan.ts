@@ -3,7 +3,7 @@ import type {
   MultihashHasher,
 } from "multiformats/hashes/interface"
 import type { MultibaseEncoder } from "multiformats/bases/interface"
-import type { sha256 } from "multiformats/hashes/sha2"
+import type * as RAW from "multiformats/codecs/raw"
 import type { Signer, Signature } from "./crypto.js"
 
 export * from "./crypto.js"
@@ -79,11 +79,9 @@ export interface UCANOptions<
   proofs?: Array<Proof>
 }
 
-export type Proof<C extends Capability = Capability> = Link<
-  Data<C>,
-  1,
-  typeof code
->
+export type Proof<C extends Capability = Capability> =
+  | Link<Data<C>, 1, typeof code>
+  | Link<JWT<Data<C>>, 1, typeof RAW.code>
 
 export type Ability = `${string}/${string}` | "*"
 export type Resource = `${string}:${string}`
