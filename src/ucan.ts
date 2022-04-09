@@ -1,25 +1,31 @@
-import type { MultihashDigest } from "multiformats/hashes/interface"
+import type {
+  MultihashDigest,
+  MultihashHasher,
+} from "multiformats/hashes/interface"
 import type { MultibaseEncoder } from "multiformats/bases/interface"
 import type { sha256 } from "multiformats/hashes/sha2"
 import type { Signer, Signature } from "./crypto.js"
 
 export * from "./crypto.js"
 
-export type { MultihashDigest, MultibaseEncoder }
-import { code } from "./lib.js"
+export type { MultihashDigest, MultibaseEncoder, MultihashHasher }
 
-export { code }
+export const code = 0x78c0
 export type Fact = Record<string, unknown>
 
 export interface Issuer<A extends number = number> extends Signer<A> {
   did(): DID
 }
 
-export type Audience = DID
+export interface Audience {
+  did(): DID
+}
+
+export type Version = `${number}.${number}.${number}`
 
 export interface Header {
-  algorithm: string
-  version: string
+  algorithm: number
+  version: Version
 }
 
 export interface Body<C extends Capability = Capability> {
@@ -30,33 +36,31 @@ export interface Body<C extends Capability = Capability> {
   notBefore?: number
   nonce?: string
 
-  facts?: Fact[]
-  proofs: Link<UCAN, 1, typeof code>[]
+  facts: Fact[]
+  proofs: Proof[]
 }
 export type JWT<T> = ToString<T>
 
-export interface UCAN<C extends Capability = Capability>
-  extends View<C>,
-    IR<C> {}
-export interface View<C extends Capability = Capability> {
-  readonly version: string
-  readonly issuer: DID
-  readonly audience: DID
-  readonly capabilities: C[]
-  readonly expiration: number
-  readonly notBefore?: number
-  readonly nonce?: string
+export type UCAN<C extends Capability = Capability> = IPLDUCAN<C> | JWTUCAN<C>
 
-  readonly facts?: Fact[]
-  readonly proofs: Link<UCAN, 1, typeof code>[]
+export interface Data<C extends Capability = Capability> {
+  readonly header: Header
+  readonly body: Body<C>
+  readonly signature: Signature<[Header, Body<C>]>
+}
+export interface IPLDUCAN<C extends Capability = Capability> extends Data<C> {
+  readonly type: "IPLD"
 }
 
-export interface IR<C extends Capability = Capability> {
-  readonly header: ByteView<Header>
-  readonly body: ByteView<Body<C>>
-
-  readonly signature: Signature<UCAN<C>>
+export interface JWTUCAN<C extends Capability = Capability> {
+  type: "JWT"
+  jwt: JWT<Data<C>>
 }
+
+export type View<C extends Capability = Capability> = UCAN<C> &
+  Data<C> &
+  Header &
+  Body<C>
 
 export interface UCANOptions<
   C extends Capability = Capability,
@@ -72,12 +76,21 @@ export interface UCANOptions<
   nonce?: string
 
   facts?: Fact[]
-  proofs?: Array<Link<UCAN, 1, typeof code>>
+  proofs?: Array<Proof>
 }
 
+export type Proof<C extends Capability = Capability> = Link<
+  Data<C>,
+  1,
+  typeof code
+>
+
+export type Ability = `${string}/${string}` | "*"
+export type Resource = `${string}:${string}`
+
 export interface Capability<
-  Can extends `${string}/${string}` = `${string}/${string}`,
-  With extends `${string}:${string}` = `${string}:${string}`
+  Can extends Ability = Ability,
+  With extends Resource = Resource
 > {
   with: With
   can: Can
@@ -135,6 +148,11 @@ export type Encoded<In, Out> = Out & Phantom<In>
  * String encoded `In`.
  */
 export type ToString<In, Out extends string = string> = Encoded<In, Out>
+
+/**
+ * JSON string encoded `In`.
+ */
+export type ToJSONString<In, Out extends string = string> = Encoded<In, Out>
 
 /**
  * This is an utility type to retain unused type parameter `T`. It can be used

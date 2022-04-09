@@ -210,6 +210,14 @@
     cborg "^1.6.0"
     multiformats "^9.5.4"
 
+"@ipld/dag-json@^8.0.9":
+  version "8.0.9"
+  resolved "https://registry.yarnpkg.com/@ipld/dag-json/-/dag-json-8.0.9.tgz#c41641ddbd3799abd0c683015c56a37f3f6d1edc"
+  integrity sha512-NNKHmgHxc2zOEaB8qOUpAb2UK1vcEE/rBeh018Da/RzXE7N8GwiTJLRZ3Fe/G4fsiis67G0sagRz/YNQcANRsQ==
+  dependencies:
+    cborg "^1.5.4"
+    multiformats "^9.5.4"
+
 "@istanbuljs/load-nyc-config@^1.0.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@istanbuljs/load-nyc-config/-/load-nyc-config-1.1.0.tgz#fd3db1d59ecf7cf121e80650bb86712f9b55eced"
@@ -625,7 +633,7 @@ caniuse-lite@^1.0.30001317:
   resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001325.tgz#2b4ad19b77aa36f61f2eaf72e636d7481d55e606"
   integrity sha512-sB1bZHjseSjDtijV1Hb7PB2Zd58Kyx+n/9EotvZ4Qcz2K3d0lWB8dB4nb8wN/TsOGFq3UuAm0zQZNQ4SoR7TrQ==
 
-cborg@^1.6.0:
+cborg@^1.5.4, cborg@^1.6.0:
   version "1.9.0"
   resolved "https://registry.yarnpkg.com/cborg/-/cborg-1.9.0.tgz#4fa8bb8e31277afc479c2dc328e67d831d9b4369"
   integrity sha512-V55F9PB2rQHXcmkZKiUEE+4IhOHu9clfO5fpcVNpSPb5V0ZdPoKhgiGA0w26J5Pd93FiMXW47ovZMw3T8V1eWA==
@@ -2795,9 +2803,10 @@ typescript@^4.6.3:
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.6.3.tgz#eefeafa6afdd31d725584c67a0eaba80f6fc6c6c"
   integrity sha512-yNIatDa5iaofVozS/uQJEl3JRWLKKGJKh6Yaiv0GLGSuhpFJe7P3SbHZ8/yjAHRQwKRoA6YZqlfjXWmVzoVSMw==
 
-"ucans@https://github.com/ucan-wg/ts-ucan.git":
-  version "0.8.0"
-  resolved "https://github.com/ucan-wg/ts-ucan.git#1a7d814755e510b20c4a961b76c1e2fea470f207"
+ucans@^0.9.0:
+  version "0.9.0"
+  resolved "https://registry.yarnpkg.com/ucans/-/ucans-0.9.0.tgz#ddff51af15830503835033084a38e93da4d182b7"
+  integrity sha512-xl9jeO8mK9+JjheOCzKjwb7KAkXLnG3fpTPXQebUaMkJ6l+ovBLaZGhL/Gd4r5IuDWjW12qqwfp7FeBzbLINuQ==
   dependencies:
     "@stablelib/ed25519" "^1.0.2"
     one-webcrypto "^1.0.1"

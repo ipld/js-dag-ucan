@@ -1,169 +1,142 @@
 import * as UCAN from "./ucan.js"
-import * as json from "multiformats/codecs/json"
 import * as CBOR from "@ipld/dag-cbor"
 import * as UTF8 from "./utf8.js"
-import { base64urlpad } from "multiformats/bases/base64"
-import { view } from "./view.js"
+import { jwt, view } from "./view.js"
+import * as Parser from "./parser.js"
+import * as Formatter from "./formatter.js"
+import { sha256 } from "multiformats/hashes/sha2"
+import { CID } from "multiformats/cid"
 
 export * from "./ucan.js"
-export const VERSION = "0.8.1"
-export const TYPE = "JWT"
+import { code } from "./ucan.js"
 
-// TODO: Send PR to multicodec table
-export const code = 0x78c0
+/** @type {UCAN.Version} */
+export const VERSION = "0.8.1"
 
 /**
- * Encodes
- *
  * @template {UCAN.Capability} C
- * @param {UCAN.IR<C>} data
+ * @param {UCAN.UCAN<C>} data
  * @returns {UCAN.ByteView<UCAN.UCAN<C>>}
  */
-export const encode = ({ header, body, signature }) =>
-  CBOR.encode({ header, body, signature })
+export const encode = data =>
+  data.type === "IPLD"
+    ? CBOR.encode({
+        header: {
+          version: data.header.version,
+          algorithm: data.header.algorithm,
+        },
+        body: {
+          issuer: data.body.issuer,
+          audience: data.body.audience,
+          capabilities: data.body.capabilities.map(Parser.asCapability),
+          expiration: data.body.expiration,
+          proofs: data.body.proofs,
+          // leave out optionals unless they are set
+          ...(data.body.facts.length > 0 && { facts: data.body.facts }),
+          ...(data.body.nonce && { nonce: data.body.nonce }),
+          ...(data.body.notBefore && { notBefore: data.body.notBefore }),
+        },
+        signature: data.signature,
+      })
+    : UTF8.encode(data.jwt)
 
 /**
  * @template {UCAN.Capability} C
  * @param {UCAN.ByteView<UCAN.UCAN<C>>} bytes
- * @returns {UCAN.UCAN<C>}
+ * @returns {UCAN.View<C>}
  */
-export const decode = bytes => view(CBOR.decode(bytes))
+export const decode = bytes => {
+  try {
+    const data = CBOR.decode(bytes)
+    data.body.facts = data.body.facts || []
+    return view(data)
+  } catch (error) {
+    return parse(UTF8.decode(/** @type {Uint8Array} */ (bytes)))
+  }
+}
 
 /**
- * Formats UCAN (IR) into a JWT token.
- *
  * @template {UCAN.Capability} C
- * @param {UCAN.IR<C>} data
- * @returns {UCAN.JWT<UCAN.UCAN<C>>}
+ * @param {UCAN.UCAN<C>} ucan
+ * @param {{hasher?: UCAN.MultihashHasher}} [options]
+ * @returns {Promise<UCAN.Link<UCAN.Data<C>, 1, typeof code>>}
  */
-export const format = ({ header, body, signature }) =>
-  `${base64urlpad.baseEncode(header)}.${base64urlpad.baseEncode(
-    body
-  )}.${base64urlpad.baseEncode(signature)}`
+export const link = async (ucan, { hasher = sha256 } = {}) => {
+  const digest = await hasher.digest(encode(ucan))
+  return /** @type {any} */ (CID.createV1(code, digest))
+}
 
 /**
  * Parse JWT formatted UCAN. Note than no validation takes place here.
  *
  * @template {UCAN.Capability} C
- * @param {UCAN.JWT<UCAN.UCAN<C>>} jwt
- * @returns {UCAN.UCAN<C>}
+ * @param {UCAN.JWT<UCAN.Data<C>>} input
+ * @returns {UCAN.View<C>}
  */
-export const parse = jwt => {
-  const [header, body, signature] = jwt.split(".")
+export const parse = input => {
+  const ucan = Parser.parse(input)
 
-  if (header == null || body == null || signature == null) {
-    throw new Error(
-      `Can't parse UCAN: ${jwt}: Expected JWT format: 3 dot-separated base64url-encoded values.`
-    )
+  // If formatting UCAN produces same jwt string we can use IPLD representation
+  // otherwise we need to fallback to raw representation. This decision will
+  // affect how we `encode` the UCAN.
+  return Formatter.format(ucan) === input ? view(ucan) : jwt(ucan, input)
+}
+
+/**
+ * @template {UCAN.Capability} C
+ * @param {UCAN.UCAN<C>} ucan
+ * @returns {UCAN.JWT<UCAN.Data<C>>}
+ */
+export const format = ucan => {
+  if (ucan.type === "IPLD") {
+    return Formatter.format(ucan)
+  } else {
+    return ucan.jwt
   }
-
-  return view({
-    header: base64urlpad.baseDecode(header),
-    body: base64urlpad.baseDecode(body),
-    signature: base64urlpad.baseDecode(signature),
-  })
 }
 
 /**
  * @template {number} A
  * @template {UCAN.Capability} C
  * @param {UCAN.UCANOptions<C, A>} options
- * @returns {Promise<UCAN.UCAN<C>>}
+ * @returns {Promise<UCAN.View<C>>}
  */
 export const issue = async ({
   issuer,
   audience,
   capabilities,
   lifetimeInSeconds = 30,
-  expiration,
+  expiration = Math.floor(Date.now() / 1000) + lifetimeInSeconds,
   notBefore,
-  facts,
+  facts = [],
   proofs = [],
   nonce,
 }) => {
-  const header = encodeHeader({ algorithm: issuer.algorithm })
+  const header = {
+    version: VERSION,
+    algorithm: issuer.algorithm,
+  }
 
   // Validate
   if (!audience.startsWith("did:")) {
     throw new TypeError("The audience must be a DID")
   }
 
-  // Timestamps
-  const currentTimeInSeconds = Math.floor(Date.now() / 1000)
-  const exp = expiration || currentTimeInSeconds + lifetimeInSeconds
-
-  /** @type {UCAN.Signature<UCAN.Body<C>>} */
-  const body = encodeBody({
+  /** @type {UCAN.Body<C>} */
+  const body = {
     issuer: issuer.did(),
     audience,
-    // TODO: Properly encode links
-    capabilities,
+    capabilities: capabilities.map(Parser.asCapability),
     facts,
-    expiration: exp,
+    expiration,
     notBefore,
     proofs,
     nonce,
-  })
+  }
 
-  /** @type {UCAN.Signature<UCAN.UCAN<C>>} */
-  const signature = await issuer.sign(encodePayload(header, body))
+  const payload = UTF8.encode(Formatter.formatPayload({ header, body }))
+  /** @type {UCAN.Signature<[UCAN.Header, UCAN.Body<C>]>} */
+  const signature = await issuer.sign(payload)
 
   return view({ header, body, signature })
-}
-
-/**
- * @param {UCAN.Body} body
- * @returns {UCAN.ByteView<UCAN.Body>}
- */
-const encodeBody = body =>
-  json.encode({
-    iss: body.issuer,
-    aud: body.audience,
-    att: body.capabilities,
-    exp: body.expiration,
-    fct: body.facts,
-    nbf: body.notBefore,
-    nnc: body.nonce,
-    prf: body.proofs.map(String),
-  })
-
-/**
- * Encodes UCAN header
- *
- * @template {number} A
- * @param {object} options
- * @param {A} options.algorithm
- * @param {string} [options.version]
- * @returns {UCAN.ByteView<UCAN.Header>}
- */
-const encodeHeader = ({ algorithm, version = VERSION }) =>
-  json.encode({
-    alg: encodeAgorithm(algorithm),
-    typ: TYPE,
-    ucv: version,
-  })
-
-/**
- *
- * @param {UCAN.ByteView<UCAN.Header>} header
- * @param {UCAN.ByteView<UCAN.Body>} body
- */
-const encodePayload = (header, body) =>
-  UTF8.encode(
-    `${base64urlpad.baseEncode(header)}.${base64urlpad.baseEncode(body)}`
-  )
-
-/**
- * @template {number} Code
- * @param {Code} code
- */
-const encodeAgorithm = code => {
-  switch (code) {
-    case 0xed:
-      return "EdDSA"
-    case 0x1205:
-      return "RS256"
-    default:
-      throw new RangeError(`Unknown KeyType "${code}"`)
-  }
 }
