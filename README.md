@@ -4,7 +4,7 @@ An implementation of [UCAN][]s representation in [IPLD][], designed for use with
 
 ## Overview
 
-This library implements multicodec for represenating [UCAN]s natively in [IPLD][]. It uses [DAG-CBOR][] as a primary encoding, which is more compact and has a better hash consitency than a secondary _RAW_ JWT encoding. Every UCAN in primary encoding can be formatted into a JWT string and consumed by spec compliant [UCAN][] implementations. However not every [UCAN][] can be encoded in a primary CBOR representation, as loss of whitespaces and key order would lead to mismatched signature. For this reasons library issues UCANs only in primary CBOR representation, however when parsing UCANs it will use secondary _RAW_ representation when primary representation can not be used, so it can interop with all existing tokens in the wild.
+This library implements multicodec for represenating [UCAN]s natively in [IPLD][]. It uses [DAG-CBOR][] as a primary encoding, which is more compact and has a better hash consitency than a secondary RAW JWT encoding. Every UCAN in primary encoding can be formatted into a JWT string and consumed by spec compliant [UCAN][] implementations. However not every [UCAN][] can be encoded in a primary CBOR representation, as loss of whitespaces and key order would lead to mismatched signature. Library issues UCANs only in primary CBOR representation. When parsing UCANs that can not have valid CBOR representation, secondary RAW representation is used, which allows interop with all existing tokens in the wild.
 
 ### Primary Representation
 
