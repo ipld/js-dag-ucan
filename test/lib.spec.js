@@ -28,7 +28,7 @@ describe("dag-ucan", () => {
     })
 
     assertUCAN(ucan, {
-      type: "IPLD",
+      code: UCAN.code,
       version: UCAN.VERSION,
       algorithm: alice.algorithm,
       issuer: alice.did(),
@@ -60,6 +60,7 @@ describe("dag-ucan", () => {
       ],
     })
     const proof = await UCAN.link(root)
+    assert.equal(proof.code, UCAN.code)
 
     const leaf = await UCAN.issue({
       issuer: bob,
@@ -70,7 +71,7 @@ describe("dag-ucan", () => {
     })
 
     assertUCAN(leaf, {
-      type: "IPLD",
+      code: UCAN.code,
       version: UCAN.VERSION,
       algorithm: alice.algorithm,
       issuer: bob.did(),
@@ -116,7 +117,7 @@ describe("dag-ucan", () => {
     })
 
     assertUCAN(leaf, {
-      type: "IPLD",
+      code: UCAN.code,
       version: UCAN.VERSION,
       algorithm: bot.algorithm,
       issuer: bot.did(),
@@ -151,7 +152,7 @@ describe("dag-ucan", () => {
 
     await assertCompatible(root)
     assertUCAN(root, {
-      type: "IPLD",
+      code: UCAN.code,
       version: UCAN.VERSION,
       algorithm: alice.algorithm,
       issuer: alice.did(),
@@ -188,7 +189,7 @@ describe("dag-ucan", () => {
 
     await assertCompatible(root)
     assertUCAN(root, {
-      type: "IPLD",
+      code: UCAN.code,
       version: UCAN.VERSION,
       algorithm: alice.algorithm,
       issuer: alice.did(),
@@ -227,7 +228,7 @@ describe("dag-ucan", () => {
     })
 
     assertUCAN(root, {
-      type: "IPLD",
+      code: UCAN.code,
       version: UCAN.VERSION,
       algorithm: alice.algorithm,
       issuer: alice.did(),
@@ -382,6 +383,52 @@ describe("errors", () => {
       }
     })
   }
+
+  it("decode throws on invalid code", async () => {
+    const ucan = await UCAN.issue({
+      issuer: alice,
+      audience: bob.did(),
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "store/put",
+        },
+      ],
+    })
+
+    assert.throws(
+      () =>
+        UCAN.encode({
+          ...ucan,
+          // @ts-expect-error
+          code: 0x0129,
+        }),
+      /Provided UCAN has unsupported code/
+    )
+  })
+
+  it("format throws on invalid code", async () => {
+    const ucan = await UCAN.issue({
+      issuer: alice,
+      audience: bob.did(),
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "store/put",
+        },
+      ],
+    })
+
+    assert.throws(
+      () =>
+        UCAN.format({
+          ...ucan,
+          // @ts-expect-error
+          code: 0x0129,
+        }),
+      /Provided UCAN has unsupported code/
+    )
+  })
 })
 
 describe("parse", () => {
@@ -406,7 +453,7 @@ describe("parse", () => {
     })
     const ucan = UCAN.parse(jwt)
     assertUCAN(ucan, {
-      type: "IPLD",
+      code: UCAN.code,
       version: UCAN.VERSION,
       algorithm: alice.algorithm,
       issuer: alice.did(),
@@ -609,7 +656,7 @@ describe("ts-ucan compat", () => {
     const jwt = await buildJWT({ issuer: alice, audience: bob })
     const ucan = UCAN.parse(jwt)
     assertUCAN(ucan, {
-      type: "JWT",
+      code: UCAN.raw,
       version: UCAN.VERSION,
       issuer: alice.did(),
       audience: bob.did(),
@@ -650,7 +697,7 @@ describe("ts-ucan compat", () => {
 
     const ucan = UCAN.parse(leaf)
     assertUCAN(ucan, {
-      type: "JWT",
+      code: UCAN.raw,
       version: UCAN.VERSION,
       issuer: bob.did(),
       audience: mallory.did(),

@@ -3,7 +3,7 @@ import type {
   MultihashHasher,
 } from "multiformats/hashes/interface"
 import type { MultibaseEncoder } from "multiformats/bases/interface"
-import type * as RAW from "multiformats/codecs/raw"
+import type { code as RAW_CODE } from "multiformats/codecs/raw"
 import type { Signer, Signature } from "./crypto.js"
 
 export * from "./crypto.js"
@@ -41,20 +41,20 @@ export interface Body<C extends Capability = Capability> {
 }
 export type JWT<T> = ToString<T>
 
-export type UCAN<C extends Capability = Capability> = IPLDUCAN<C> | JWTUCAN<C>
+export type UCAN<C extends Capability = Capability> = CBOR<C> | RAW<C>
 
 export interface Data<C extends Capability = Capability> {
   readonly header: Header
   readonly body: Body<C>
   readonly signature: Signature<[Header, Body<C>]>
 }
-export interface IPLDUCAN<C extends Capability = Capability> extends Data<C> {
-  readonly type: "IPLD"
+export interface CBOR<C extends Capability = Capability> extends Data<C> {
+  readonly code: typeof code
 }
 
-export interface JWTUCAN<C extends Capability = Capability> {
-  type: "JWT"
-  jwt: JWT<Data<C>>
+export interface RAW<C extends Capability = Capability> {
+  readonly code: typeof RAW_CODE
+  readonly jwt: JWT<RAW<C>>
 }
 
 export type View<C extends Capability = Capability> = UCAN<C> &
@@ -81,7 +81,7 @@ export interface UCANOptions<
 
 export type Proof<C extends Capability = Capability> =
   | Link<Data<C>, 1, typeof code>
-  | Link<JWT<Data<C>>, 1, typeof RAW.code>
+  | Link<JWT<Data<C>>, 1, typeof RAW_CODE>
 
 export type Ability = `${string}/${string}` | "*"
 export type Resource = `${string}:${string}`

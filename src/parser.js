@@ -10,7 +10,7 @@ import * as raw from "multiformats/codecs/raw"
  * Parse JWT formatted UCAN. Note than no validation takes place here.
  *
  * @template {UCAN.Capability} C
- * @param {UCAN.JWT<UCAN.Data<C>>} input
+ * @param {UCAN.JWT<UCAN.UCAN<C>>} input
  * @returns {UCAN.Data<C>}
  */
 export const parse = input => {

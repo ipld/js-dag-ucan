@@ -1,18 +1,19 @@
 import * as UCAN from "./ucan.js"
+import * as RAW from "multiformats/codecs/raw"
 
 /**
  * @template {UCAN.Capability} C
- * @template {"IPLD"|"JWT"} Type
+ * @template {typeof UCAN.code|typeof RAW.code} Code
  * @extends {View<C>}
  */
 class View {
   /**
-   * @param {Type} type
+   * @param {Code} code
    * @param {UCAN.Data<C>} data
    */
-  constructor(type, { header, body, signature }) {
+  constructor(code, { header, body, signature }) {
     /** @readonly */
-    this.type = type
+    this.code = code
     /** @readonly */
     this.header = header
     /** @readonly */
@@ -86,16 +87,16 @@ class View {
 
 /**
  * @template {UCAN.Capability} C
- * @extends {View<C, "JWT">}
+ * @extends {View<C, typeof RAW.code>}
  */
-class JWTView extends View {
+class RAWView extends View {
   /**
    *
    * @param {UCAN.Data<C>} data
-   * @param {*} jwt
+   * @param {UCAN.JWT<UCAN.RAW<C>>} jwt
    */
   constructor(data, jwt) {
-    super("JWT", data)
+    super(RAW.code, data)
     this.jwt = jwt
   }
 }
@@ -105,12 +106,12 @@ class JWTView extends View {
  * @param {UCAN.Data<C>} data
  * @returns {UCAN.View<C>}
  */
-export const view = data => new View("IPLD", data)
+export const cbor = data => new View(UCAN.code, data)
 
 /**
  * @template {UCAN.Capability} C
  * @param {UCAN.Data<C>} data
- * @param {UCAN.JWT<UCAN.Data<C>>} jwt
+ * @param {UCAN.JWT<UCAN.RAW<C>>} jwt
  * @returns {UCAN.View<C>}
  */
-export const jwt = (data, jwt) => new JWTView(data, jwt)
+export const jwt = (data, jwt) => new RAWView(data, jwt)

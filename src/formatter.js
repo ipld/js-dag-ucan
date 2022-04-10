@@ -5,6 +5,7 @@ import { base64urlpad } from "multiformats/bases/base64"
 /**
  * @template {UCAN.Capability} C
  * @param {UCAN.Data<C>} data
+ * @returns {UCAN.JWT<UCAN.CBOR<C>>}
  */
 export const format = ({ header, body, signature }) =>
   `${formatHeader(header)}.${formatBody(body)}.${formatSignature(signature)}`
@@ -14,18 +15,21 @@ export const format = ({ header, body, signature }) =>
  * @param {object} payload
  * @param {UCAN.Header} payload.header
  * @param {UCAN.Body<C>} payload.body
+ * @returns {`${UCAN.Header}.${UCAN.Body}`}
  */
 export const formatPayload = ({ header, body }) =>
   `${formatHeader(header)}.${formatBody(body)}`
 
 /**
  * @param {UCAN.Header} header
+ * @returns {`${UCAN.Header}`}
  */
 export const formatHeader = header =>
   base64urlpad.baseEncode(encodeHeader(header))
 
 /**
  * @param {UCAN.Body} body
+ * @returns {`${UCAN.Body}`}
  */
 export const formatBody = body => base64urlpad.baseEncode(encodeBody(body))
 
