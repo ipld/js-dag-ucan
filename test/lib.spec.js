@@ -60,6 +60,7 @@ describe("dag-ucan", () => {
       ],
     })
     const proof = await UCAN.link(root)
+    assert.equal(proof.code, UCAN.code)
 
     const leaf = await UCAN.issue({
       issuer: bob,

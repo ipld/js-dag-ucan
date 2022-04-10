@@ -95,7 +95,9 @@ export const decode = bytes => {
  */
 export const link = async (ucan, { hasher = sha256 } = {}) => {
   const digest = await hasher.digest(encode(ucan))
-  return /** @type {UCAN.Proof<C>} */ (CID.createV1(ucan.code, digest))
+  return /** @type {UCAN.Proof<C>} */ (
+    CID.createV1(ucan.code === raw ? raw : code, digest)
+  )
 }
 
 /**
