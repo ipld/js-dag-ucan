@@ -15,7 +15,6 @@ import { code } from "./ucan.js"
 export const VERSION = "0.8.1"
 
 export const raw = RAW.code
-export const cbor = CBOR.code
 
 /**
  * Encodes given UCAN (in either IPLD or JWT representation) and encodes it into
@@ -28,7 +27,7 @@ export const cbor = CBOR.code
  */
 export const encode = ucan => {
   switch (ucan.code) {
-    case cbor:
+    case code:
       return CBOR.encode({
         header: {
           version: ucan.header.version,
@@ -57,9 +56,9 @@ export const encode = ucan => {
 /**
  * @param {never} ucan
  */
-const invalidCode = ({ code }) => {
+const invalidCode = ({ code: unknown }) => {
   throw new TypeError(
-    `Provided UCAN has unsupported code: ${code}, it must be ${cbor} for CBOR representation or ${raw} for JWT representation`
+    `Provided UCAN has unsupported code: ${unknown}, it must be ${code} for CBOR representation or ${raw} for JWT representation`
   )
 }
 
@@ -136,7 +135,7 @@ export const parse = input => {
  */
 export const format = ucan => {
   switch (ucan.code) {
-    case cbor:
+    case code:
       return Formatter.format(ucan)
     case raw:
       return ucan.jwt

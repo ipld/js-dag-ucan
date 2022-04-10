@@ -4,7 +4,6 @@ import type {
 } from "multiformats/hashes/interface"
 import type { MultibaseEncoder } from "multiformats/bases/interface"
 import type { code as RAW_CODE } from "multiformats/codecs/raw"
-import type { code as CBOR_CODE } from "@ipld/dag-cbor"
 import type { Signer, Signature } from "./crypto.js"
 
 export * from "./crypto.js"
@@ -50,7 +49,7 @@ export interface Data<C extends Capability = Capability> {
   readonly signature: Signature<[Header, Body<C>]>
 }
 export interface CBOR<C extends Capability = Capability> extends Data<C> {
-  readonly code: typeof CBOR_CODE
+  readonly code: typeof code
 }
 
 export interface RAW<C extends Capability = Capability> {

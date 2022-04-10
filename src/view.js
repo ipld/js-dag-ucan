@@ -1,10 +1,9 @@
 import * as UCAN from "./ucan.js"
-import { code as CBOR_CODE } from "@ipld/dag-cbor"
-import { code as RAW_CODE } from "multiformats/codecs/raw"
+import * as RAW from "multiformats/codecs/raw"
 
 /**
  * @template {UCAN.Capability} C
- * @template {typeof CBOR_CODE|typeof RAW_CODE} Code
+ * @template {typeof UCAN.code|typeof RAW.code} Code
  * @extends {View<C>}
  */
 class View {
@@ -88,7 +87,7 @@ class View {
 
 /**
  * @template {UCAN.Capability} C
- * @extends {View<C, typeof RAW_CODE>}
+ * @extends {View<C, typeof RAW.code>}
  */
 class RAWView extends View {
   /**
@@ -97,7 +96,7 @@ class RAWView extends View {
    * @param {UCAN.JWT<UCAN.RAW<C>>} jwt
    */
   constructor(data, jwt) {
-    super(RAW_CODE, data)
+    super(RAW.code, data)
     this.jwt = jwt
   }
 }
@@ -107,7 +106,7 @@ class RAWView extends View {
  * @param {UCAN.Data<C>} data
  * @returns {UCAN.View<C>}
  */
-export const cbor = data => new View(CBOR_CODE, data)
+export const cbor = data => new View(UCAN.code, data)
 
 /**
  * @template {UCAN.Capability} C

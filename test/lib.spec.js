@@ -28,7 +28,7 @@ describe("dag-ucan", () => {
     })
 
     assertUCAN(ucan, {
-      code: UCAN.cbor,
+      code: UCAN.code,
       version: UCAN.VERSION,
       algorithm: alice.algorithm,
       issuer: alice.did(),
@@ -71,7 +71,7 @@ describe("dag-ucan", () => {
     })
 
     assertUCAN(leaf, {
-      code: UCAN.cbor,
+      code: UCAN.code,
       version: UCAN.VERSION,
       algorithm: alice.algorithm,
       issuer: bob.did(),
@@ -117,7 +117,7 @@ describe("dag-ucan", () => {
     })
 
     assertUCAN(leaf, {
-      code: UCAN.cbor,
+      code: UCAN.code,
       version: UCAN.VERSION,
       algorithm: bot.algorithm,
       issuer: bot.did(),
@@ -152,7 +152,7 @@ describe("dag-ucan", () => {
 
     await assertCompatible(root)
     assertUCAN(root, {
-      code: UCAN.cbor,
+      code: UCAN.code,
       version: UCAN.VERSION,
       algorithm: alice.algorithm,
       issuer: alice.did(),
@@ -189,7 +189,7 @@ describe("dag-ucan", () => {
 
     await assertCompatible(root)
     assertUCAN(root, {
-      code: UCAN.cbor,
+      code: UCAN.code,
       version: UCAN.VERSION,
       algorithm: alice.algorithm,
       issuer: alice.did(),
@@ -228,7 +228,7 @@ describe("dag-ucan", () => {
     })
 
     assertUCAN(root, {
-      code: UCAN.cbor,
+      code: UCAN.code,
       version: UCAN.VERSION,
       algorithm: alice.algorithm,
       issuer: alice.did(),
@@ -453,7 +453,7 @@ describe("parse", () => {
     })
     const ucan = UCAN.parse(jwt)
     assertUCAN(ucan, {
-      code: UCAN.cbor,
+      code: UCAN.code,
       version: UCAN.VERSION,
       algorithm: alice.algorithm,
       issuer: alice.did(),
