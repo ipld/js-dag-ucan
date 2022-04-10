@@ -1,10 +1,10 @@
 # @ipld/dag-ucan
 
-An implementation of [UCAN][]s with [IPLD][] representation, designed to be used with [multiformats][].
+An implementation of [UCAN][]s representation in [IPLD][], designed for use with [multiformats][].
 
 ## Overview
 
-This library implements multicodec for represenating [UCAN]s natively in [IPLD][]. It uses [DAG-CBOR][] encoding as a primary representation, which is more compact and has better hash consitency than secondary representation which is raw bytes of JWT. Every UCAN in primary representation can be formatted as JWT and used by any spec compliant [UCAN][] implementation, however not every [UCAN][] can be represented by primary representation _(loss of whitespaces and key order would lead to different signatures)_. Such [UCAN][]s are parsed into a secondary "JWT" representation, which allows interop with all existing tokens in the wild.
+This library implements multicodec for represenating [UCAN]s natively in [IPLD][]. It uses [DAG-CBOR][] as a primary encoding, which is more compact and has a better hash consitency than a secondary _RAW_ JWT encoding. Every UCAN in primary encoding can be formatted into a JWT string and consumed by spec compliant [UCAN][] implementations. However not every [UCAN][] can be encoded in a primary CBOR representation, as loss of whitespaces and key order would lead to mismatched signature. For this reasons library issues UCANs only in primary CBOR representation, however when parsing UCANs it will use secondary _RAW_ representation when primary representation can not be used, so it can interop with all existing tokens in the wild.
 
 ### Primary Representation
 
@@ -64,7 +64,7 @@ import * as UCAN from "@ipld/dag-ucan"
 
 #### `UCAN.parse(jwt: string): UCAN.UCAN`
 
-Parses UCAN JWT string and returns `UCAN` object which can be encoded, formatted or queried.
+Parses UCAN formatted as JWT string into a representatino that can be encoded, formatted and queried.
 
 ```ts
 const ucan = UCAN.parse(jwt)
@@ -73,7 +73,7 @@ ucan.issuer // did:key:zAlice
 
 #### `UCAN.format(ucan: UCAN.UCAN): string`
 
-Formats UCAN as a JWT string.
+Formats UCAN into a JWT string.
 
 ```ts
 UCAN.format(UCAN.parse(jwt)) === jwt // true
@@ -81,15 +81,15 @@ UCAN.format(UCAN.parse(jwt)) === jwt // true
 
 #### `UCAN.encode(ucan: UCAN.UCAN): Uint8Array`
 
-Encodes UCAN into binary representation.
+Encodes UCAN into a binary representation.
 
 #### `UCAN.decode(bytes: Uint8Array): UCAN.UCAN`
 
-Decodes UCAN in binary representation into object representation.
+Decodes byte encoded UCAN.
 
 #### `UCAN.issue(options: UCAN.UCANOptions): Promise<UCAN.UCAN>`
 
-Issues or derives a UCAN. Returns promise for UCAN in IPLD representation.
+Issues or derives a UCAN.
 
 > Please note that no capability or time bound validation takes place
 

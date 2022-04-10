@@ -1,12 +1,12 @@
 import * as UCAN from "./ucan.js"
 import * as CBOR from "@ipld/dag-cbor"
+import * as RAW from "multiformats/codecs/raw"
 import * as UTF8 from "./utf8.js"
-import { jwt, view } from "./view.js"
+import * as View from "./view.js"
 import * as Parser from "./parser.js"
 import * as Formatter from "./formatter.js"
 import { sha256 } from "multiformats/hashes/sha2"
 import { CID } from "multiformats/cid"
-import * as RAW from "multiformats/codecs/raw"
 
 export * from "./ucan.js"
 import { code } from "./ucan.js"
@@ -14,36 +14,54 @@ import { code } from "./ucan.js"
 /** @type {UCAN.Version} */
 export const VERSION = "0.8.1"
 
+export const raw = RAW.code
+export const cbor = CBOR.code
+
 /**
  * Encodes given UCAN (in either IPLD or JWT representation) and encodes it into
  * corresponding bytes representation. UCAN in IPLD representation is encoded as
  * DAG-CBOR which JWT representation is encoded as raw bytes of JWT string.
  *
  * @template {UCAN.Capability} C
- * @param {UCAN.UCAN<C>} data
+ * @param {UCAN.UCAN<C>} ucan
  * @returns {UCAN.ByteView<UCAN.UCAN<C>>}
  */
-export const encode = data =>
-  data.type === "IPLD"
-    ? CBOR.encode({
+export const encode = ucan => {
+  switch (ucan.code) {
+    case cbor:
+      return CBOR.encode({
         header: {
-          version: data.header.version,
-          algorithm: data.header.algorithm,
+          version: ucan.header.version,
+          algorithm: ucan.header.algorithm,
         },
         body: {
-          issuer: data.body.issuer,
-          audience: data.body.audience,
-          capabilities: data.body.capabilities.map(Parser.asCapability),
-          expiration: data.body.expiration,
-          proofs: data.body.proofs,
+          issuer: ucan.body.issuer,
+          audience: ucan.body.audience,
+          capabilities: ucan.body.capabilities.map(Parser.asCapability),
+          expiration: ucan.body.expiration,
+          proofs: ucan.body.proofs,
           // leave out optionals unless they are set
-          ...(data.body.facts.length > 0 && { facts: data.body.facts }),
-          ...(data.body.nonce && { nonce: data.body.nonce }),
-          ...(data.body.notBefore && { notBefore: data.body.notBefore }),
+          ...(ucan.body.facts.length > 0 && { facts: ucan.body.facts }),
+          ...(ucan.body.nonce && { nonce: ucan.body.nonce }),
+          ...(ucan.body.notBefore && { notBefore: ucan.body.notBefore }),
         },
-        signature: data.signature,
+        signature: ucan.signature,
       })
-    : UTF8.encode(data.jwt)
+    case raw:
+      return /** @type {Uint8Array} */ (UTF8.encode(ucan.jwt))
+    default:
+      return invalidCode(ucan)
+  }
+}
+
+/**
+ * @param {never} ucan
+ */
+const invalidCode = ({ code }) => {
+  throw new TypeError(
+    `Provided UCAN has unsupported code: ${code}, it must be ${cbor} for CBOR representation or ${raw} for JWT representation`
+  )
+}
 
 /**
  * Decodes binary encoded UCAN. It assumes UCAN is in primary IPLD
@@ -59,7 +77,7 @@ export const decode = bytes => {
   try {
     const data = CBOR.decode(bytes)
     data.body.facts = data.body.facts || []
-    return view(data)
+    return View.cbor(data)
   } catch (error) {
     return parse(UTF8.decode(/** @type {Uint8Array} */ (bytes)))
   }
@@ -77,9 +95,7 @@ export const decode = bytes => {
  */
 export const link = async (ucan, { hasher = sha256 } = {}) => {
   const digest = await hasher.digest(encode(ucan))
-  return /** @type {UCAN.Proof<C>} */ (
-    CID.createV1(ucan.type === "IPLD" ? code : RAW.code, digest)
-  )
+  return /** @type {UCAN.Proof<C>} */ (CID.createV1(ucan.code, digest))
 }
 
 /**
@@ -95,7 +111,7 @@ export const link = async (ucan, { hasher = sha256 } = {}) => {
  * if it is not.
  *
  * @template {UCAN.Capability} C
- * @param {UCAN.JWT<UCAN.Data<C>>} input
+ * @param {UCAN.JWT<UCAN.UCAN<C>>} input
  * @returns {UCAN.View<C>}
  */
 export const parse = input => {
@@ -104,7 +120,9 @@ export const parse = input => {
   // If formatting UCAN produces same jwt string we can use IPLD representation
   // otherwise we need to fallback to raw representation. This decision will
   // affect how we `encode` the UCAN.
-  return Formatter.format(ucan) === input ? view(ucan) : jwt(ucan, input)
+  return Formatter.format(ucan) === input
+    ? View.cbor(ucan)
+    : View.jwt(ucan, /** @type {UCAN.JWT<UCAN.RAW<C>>} */ (input))
 }
 
 /**
@@ -112,13 +130,16 @@ export const parse = input => {
  *
  * @template {UCAN.Capability} C
  * @param {UCAN.UCAN<C>} ucan
- * @returns {UCAN.JWT<UCAN.Data<C>>}
+ * @returns {UCAN.JWT<UCAN.UCAN<C>>}
  */
 export const format = ucan => {
-  if (ucan.type === "IPLD") {
-    return Formatter.format(ucan)
-  } else {
-    return ucan.jwt
+  switch (ucan.code) {
+    case cbor:
+      return Formatter.format(ucan)
+    case raw:
+      return ucan.jwt
+    default:
+      return invalidCode(ucan)
   }
 }
 
@@ -169,5 +190,5 @@ export const issue = async ({
   /** @type {UCAN.Signature<[UCAN.Header, UCAN.Body<C>]>} */
   const signature = await issuer.sign(payload)
 
-  return view({ header, body, signature })
+  return View.cbor({ header, body, signature })
 }
