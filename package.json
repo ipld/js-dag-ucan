@@ -2,6 +2,14 @@
   "name": "@ipld/dag-ucan",
   "description": "UCAN codec for IPLD",
   "version": "1.0.0-beta",
+  "keywords": [
+      "UCAN",
+      "IPLD",
+      "JWT",
+      "multicodec",
+      "codec",
+      "parser"
+  ],
   "files": [
     "src",
     "dist/src"
