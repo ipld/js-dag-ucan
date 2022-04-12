@@ -13,6 +13,7 @@ import { code } from "./ucan.js"
 
 /** @type {UCAN.Version} */
 export const VERSION = "0.8.1"
+export const name = 'dag-ucan'
 
 export const raw = RAW.code
 
