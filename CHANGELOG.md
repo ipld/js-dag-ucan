@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.0-beta](https://github.com/ipld/js-dag-ucan/compare/v1.0.0-beta...v1.1.0-beta) (2022-04-13)
+
+
+### Features
+
+* implement write API ([#10](https://github.com/ipld/js-dag-ucan/issues/10)) ([40cd493](https://github.com/ipld/js-dag-ucan/commit/40cd493b08b89227085d4099a595a919f4bf1e72))
+
+
+### Bug Fixes
+
+* add 'name' field per `BlockCodec` interface ([00ebfbe](https://github.com/ipld/js-dag-ucan/commit/00ebfbed65a5e3308daebec3727d886470513482))
+
 ## 1.0.0-beta (2022-04-11)
 
 
