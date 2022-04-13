@@ -13,7 +13,7 @@ import { code } from "./ucan.js"
 
 /** @type {UCAN.Version} */
 export const VERSION = "0.8.1"
-export const name = 'dag-ucan'
+export const name = "dag-ucan"
 
 export const raw = RAW.code
 
@@ -99,9 +99,8 @@ export const link = async (ucan, options) => {
 
 /**
  * @template {UCAN.Capability} C
- * @template {UCAN.UCAN<C>} Data
  * @template {number} [A=typeof sha256.code]
- * @param {Data} ucan
+ * @param {UCAN.UCAN<C>} ucan
  * @param {{hasher?: UCAN.MultihashHasher<A>}} [options]
  */
 export const write = async (
@@ -109,7 +108,7 @@ export const write = async (
   { hasher = /** @type {UCAN.MultihashHasher<any> } */ (sha256) } = {}
 ) => {
   const bytes = encode(ucan)
-  const cid = /** @type {CID & UCAN.Link<Data, 1, Data['code'], A>} */ (
+  const cid = /** @type {CID & UCAN.Proof<C, A>} */ (
     CID.createV1(ucan.code, await hasher.digest(bytes))
   )
   return { cid, bytes }

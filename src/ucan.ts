@@ -79,9 +79,10 @@ export interface UCANOptions<
   proofs?: Array<Proof>
 }
 
-export type Proof<C extends Capability = Capability> =
-  | Link<Data<C>, 1, typeof code>
-  | Link<JWT<Data<C>>, 1, typeof RAW_CODE>
+export type Proof<
+  C extends Capability = Capability,
+  A extends number = number
+> = Link<Data<C>, 1, typeof code, A> | Link<JWT<Data<C>>, 1, typeof RAW_CODE, A>
 
 export interface Block<
   T extends unknown = unknown,
