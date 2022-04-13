@@ -83,6 +83,15 @@ export type Proof<C extends Capability = Capability> =
   | Link<Data<C>, 1, typeof code>
   | Link<JWT<Data<C>>, 1, typeof RAW_CODE>
 
+export interface Block<
+  T extends unknown = unknown,
+  C extends number = number,
+  A extends number = number
+> {
+  bytes: ByteView<T>
+  cid: Link<T, 1, C, A>
+}
+
 export type Ability = `${string}/${string}` | "*"
 export type Resource = `${string}:${string}`
 

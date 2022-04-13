@@ -91,13 +91,28 @@ export const decode = bytes => {
  * @template {UCAN.Capability} C
  * @param {UCAN.UCAN<C>} ucan
  * @param {{hasher?: UCAN.MultihashHasher}} [options]
- * @returns {Promise<UCAN.Proof<C>>}
  */
-export const link = async (ucan, { hasher = sha256 } = {}) => {
-  const digest = await hasher.digest(encode(ucan))
-  return /** @type {UCAN.Proof<C>} */ (
-    CID.createV1(ucan.code === raw ? raw : code, digest)
+export const link = async (ucan, options) => {
+  const { cid } = await write(ucan, options)
+  return cid
+}
+
+/**
+ * @template {UCAN.Capability} C
+ * @template {UCAN.UCAN<C>} Data
+ * @template {number} [A=typeof sha256.code]
+ * @param {Data} ucan
+ * @param {{hasher?: UCAN.MultihashHasher<A>}} [options]
+ */
+export const write = async (
+  ucan,
+  { hasher = /** @type {UCAN.MultihashHasher<any> } */ (sha256) } = {}
+) => {
+  const bytes = encode(ucan)
+  const cid = /** @type {CID & UCAN.Link<Data, 1, Data['code'], A>} */ (
+    CID.createV1(ucan.code, await hasher.digest(bytes))
   )
+  return { cid, bytes }
 }
 
 /**
