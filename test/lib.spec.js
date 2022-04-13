@@ -13,6 +13,7 @@ import {
   buildJWT,
   formatUnsafe,
 } from "./util.js"
+import { sha256 } from "multiformats/hashes/sha2"
 
 describe("dag-ucan", () => {
   it("self-issued token", async () => {
@@ -723,5 +724,32 @@ describe("ts-ucan compat", () => {
     assert.equal(proof.multihash.code, identity.code)
 
     assert.equal(UTF8.decode(proof.multihash.digest), root)
+  })
+})
+
+describe("api compatibility", () => {
+  it("multiformats compatibility", async () => {
+    const Block = await import("multiformats/block")
+    const ucan = await UCAN.issue({
+      issuer: alice,
+      audience: bob.did(),
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "store/put",
+        },
+      ],
+    })
+
+    const block = await Block.encode({
+      value: { ...ucan },
+      codec: UCAN,
+      hasher: sha256,
+    })
+
+    const { cid, bytes } = await UCAN.write(ucan)
+    assert.deepEqual(block.cid, cid)
+    assert.deepEqual(block.bytes, bytes)
+    assert.deepEqual(block.value, ucan)
   })
 })
