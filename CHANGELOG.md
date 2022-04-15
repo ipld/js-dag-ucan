@@ -1,5 +1,12 @@
 # Changelog
 
+### [1.1.1-beta](https://github.com/ipld/js-dag-ucan/compare/v1.1.0-beta...v1.1.1-beta) (2022-04-15)
+
+
+### Bug Fixes
+
+* make default fields same ([#11](https://github.com/ipld/js-dag-ucan/issues/11)) ([49852e1](https://github.com/ipld/js-dag-ucan/commit/49852e121e141ec8be39709f343f12e68e9c1eb4))
+
 ## [1.1.0-beta](https://github.com/ipld/js-dag-ucan/compare/v1.0.0-beta...v1.1.0-beta) (2022-04-13)
 
 
