@@ -80,7 +80,7 @@ export const createRSAIssuer = async () =>
  *
  * @typedef {{
  * issuer: TSUCAN.EdKeypair
- * audience: UCAN.Audience
+ * audience: UCAN.Agent
  * proofs?: string[]
  * }} BuildOptions
  *
