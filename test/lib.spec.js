@@ -652,6 +652,24 @@ describe("parse", () => {
   })
 })
 
+describe("encode <-> decode", () => {
+  it("issued ucan is equal to decoded ucan", async () => {
+    const expected = await UCAN.issue({
+      issuer: alice,
+      audience: bob.did(),
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "store/put",
+        },
+      ],
+    })
+
+    const actual = UCAN.decode(UCAN.encode(expected))
+    assert.deepEqual(expected, actual)
+  })
+})
+
 describe("ts-ucan compat", () => {
   it("round-trips with token.build", async () => {
     const jwt = await buildJWT({ issuer: alice, audience: bob })

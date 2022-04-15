@@ -77,6 +77,8 @@ export const decode = bytes => {
   try {
     const data = CBOR.decode(bytes)
     data.body.facts = data.body.facts || []
+    data.body.nonce = data.body.nonce || undefined
+    data.body.notBefore = data.body.notBefore || undefined
     return View.cbor(data)
   } catch (error) {
     return parse(UTF8.decode(/** @type {Uint8Array} */ (bytes)))
