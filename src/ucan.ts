@@ -13,13 +13,12 @@ export type { MultihashDigest, MultibaseEncoder, MultihashHasher }
 export const code = 0x78c0
 export type Fact = Record<string, unknown>
 
-export interface Issuer<A extends number = number> extends Signer<A> {
+export interface Agent {
   did(): DID
 }
 
-export interface Audience {
-  did(): DID
-}
+export type Audience = Agent
+export interface Issuer<A extends number = number> extends Signer<A>, Agent {}
 
 export type Version = `${number}.${number}.${number}`
 
