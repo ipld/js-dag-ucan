@@ -1,5 +1,12 @@
 # Changelog
 
+### [1.2.2-beta](https://github.com/ipld/js-dag-ucan/compare/v1.2.1-beta...v1.2.2-beta) (2022-04-21)
+
+
+### Bug Fixes
+
+* stop shadowing DID type ([#19](https://github.com/ipld/js-dag-ucan/issues/19)) ([0f098b1](https://github.com/ipld/js-dag-ucan/commit/0f098b1e9d6ec839e39ef280ded01de139f9f6dc))
+
 ### [1.2.1-beta](https://github.com/ipld/js-dag-ucan/compare/v1.2.0-beta...v1.2.1-beta) (2022-04-21)
 
 
