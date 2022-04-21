@@ -63,6 +63,20 @@ export const encode = bytes => {
   return bytes
 }
 
+/**
+ * @param {UCAN.ByteView<UCAN.DID>|UCAN.DID} input
+ * @returns {UCAN.DIDView}
+ */
+export const from = input => {
+  if (input instanceof DID) {
+    return input
+  } else if (input instanceof Uint8Array) {
+    return decode(input)
+  } else {
+    return parse(input)
+  }
+}
+
 class DID extends Uint8Array {
   did() {
     return format(this)
