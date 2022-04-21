@@ -1,5 +1,12 @@
 # Changelog
 
+### [1.2.3-beta](https://github.com/ipld/js-dag-ucan/compare/v1.2.2-beta...v1.2.3-beta) (2022-04-21)
+
+
+### Bug Fixes
+
+* alight types better ([#21](https://github.com/ipld/js-dag-ucan/issues/21)) ([7fcb1aa](https://github.com/ipld/js-dag-ucan/commit/7fcb1aaab44f6cdfccc27b537c4f891e0f4c845a))
+
 ### [1.2.2-beta](https://github.com/ipld/js-dag-ucan/compare/v1.2.1-beta...v1.2.2-beta) (2022-04-21)
 
 
