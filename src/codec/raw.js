@@ -8,19 +8,23 @@ export const name = "dag-ucan"
 export const code = RAW.code
 
 /**
- * Encodes given UCAN (in either JWT representation) and encodes it into
- * corresponding bytes representation.
+ * Takes UCAN in RAW JWT representation and encodes it into binary
+ * format.
  *
  * @template {UCAN.Capability} C
  * @param {UCAN.RAW<C>} ucan
- * @returns {UCAN.ByteView<UCAN.JWT<C>>}
+ * @returns {UCAN.ByteView<UCAN.RAW<C>>}
  */
 export const encode = ucan =>
   new Uint8Array(ucan.buffer, ucan.byteOffset, ucan.byteLength)
 
 /**
  * @template {UCAN.Capability} C
- * @param {UCAN.ByteView<UCAN.JWT<C>>} bytes
- * @returns {UCAN.View<C>}
+ * @param {UCAN.ByteView<UCAN.RAW<C>>|UCAN.RAW<C>} bytes
+ * @returns {UCAN.JWTView<C>}
  */
-export const decode = bytes => View.jwt(Parser.parse(UTF8.decode(bytes)), bytes)
+export const decode = bytes =>
+  View.jwt(
+    Parser.parse(UTF8.decode(/** @type {UCAN.RAW<C>} */ (bytes))),
+    /** @type {UCAN.RAW<C>} */ (bytes)
+  )

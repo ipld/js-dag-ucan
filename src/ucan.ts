@@ -66,15 +66,6 @@ export interface Payload<C extends Capability> {
 
 export type UCAN<C extends Capability = Capability> = Model<C> | RAW<C>
 
-// export interface Data<C extends Capability = Capability> {
-//   readonly header: Header
-//   readonly body: Body<C>
-//   readonly signature: Signature<[Header, Body<C>]>
-// }
-// export interface CBOR<C extends Capability = Capability> extends Data<C> {
-//   readonly code: typeof code
-// }
-
 export interface Input<C extends Capability = Capability> {
   version: Version
   issuer: ByteView<DID>
@@ -92,11 +83,17 @@ export interface Model<C extends Capability = Capability> extends Input<C> {
 }
 
 export interface RAW<C extends Capability = Capability>
-  extends Model<C>,
-    ByteView<JWT<C>> {}
+  extends ByteView<JWT<C>> {}
+
+export interface JWTView<C extends Capability = Capability>
+  extends ByteView<JWT<C>>,
+    View<C> {}
 
 export interface View<C extends Capability = Capability> extends Model<C> {
   readonly model: Model<C>
+
+  issuer: DIDView
+  audience: DIDView
 }
 
 export interface UCANOptions<

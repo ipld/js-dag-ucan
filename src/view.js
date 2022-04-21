@@ -20,11 +20,11 @@ class View {
   }
 
   get issuer() {
-    return this.model.issuer
+    return DID.from(this.model.issuer)
   }
 
   get audience() {
-    return this.model.audience
+    return DID.from(this.model.audience)
   }
 
   /**
@@ -78,7 +78,7 @@ class View {
 
 /**
  * @template {UCAN.Capability} C
- * @implements {UCAN.View<C>}
+ * @implements {UCAN.JWTView<C>}
  */
 class JWTView extends Uint8Array {
   /**
@@ -101,11 +101,11 @@ class JWTView extends Uint8Array {
   }
 
   get issuer() {
-    return this.model.issuer
+    return DID.from(this.model.issuer)
   }
 
   get audience() {
-    return this.model.audience
+    return DID.from(this.model.audience)
   }
 
   /**
@@ -167,7 +167,7 @@ export const cbor = data => new View(data)
 /**
  * @template {UCAN.Capability} C
  * @param {UCAN.Model<C>} model
- * @param {UCAN.ByteView<UCAN.JWT<C>>} bytes
- * @returns {UCAN.View<C>}
+ * @param {UCAN.RAW<C>} bytes
+ * @returns {UCAN.JWTView<C>}
  */
 export const jwt = (model, bytes) => new JWTView(model, bytes)

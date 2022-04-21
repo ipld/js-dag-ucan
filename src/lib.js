@@ -24,7 +24,7 @@ export const code = CBOR.code
  *
  * @template {UCAN.Capability} C
  * @param {UCAN.UCAN<C>} ucan
- * @returns {UCAN.ByteView<UCAN.Model<C>>|UCAN.ByteView<UCAN.JWT<C>>}
+ * @returns {UCAN.ByteView<UCAN.UCAN<C>>}
  */
 export const encode = ucan =>
   ucan instanceof Uint8Array ? RAW.encode(ucan) : CBOR.encode(ucan)
@@ -36,7 +36,7 @@ export const encode = ucan =>
  * a JWT.
  *
  * @template {UCAN.Capability} C
- * @param {UCAN.ByteView<UCAN.Model<C>>|UCAN.ByteView<UCAN.JWT<C>>} bytes
+ * @param {UCAN.ByteView<UCAN.UCAN<C>>} bytes
  * @returns {UCAN.View<C>}
  */
 export const decode = bytes => {
@@ -64,9 +64,10 @@ export const link = async (ucan, options) => {
 
 /**
  * @template {UCAN.Capability} C
- * @template {number} [A=typeof sha256.code]
+ * @template {number} [A=number]
  * @param {UCAN.UCAN<C>} data
  * @param {{hasher?: UCAN.MultihashHasher<A>}} [options]
+ * @returns {Promise<{cid:UCAN.Proof<C> & CID, bytes: UCAN.ByteView<UCAN.UCAN<C>>, data: UCAN.UCAN<C> }>}
  */
 export const write = async (
   data,

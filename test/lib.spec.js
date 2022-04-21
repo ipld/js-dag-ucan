@@ -943,8 +943,8 @@ describe("jwt representation", () => {
 
     assert.equal(cbor instanceof Uint8Array, false)
     assertUCAN(cbor, {
-      issuer: DID.parse(alice.did()),
-      audience: DID.parse(bob.did()),
+      issuer: DID.from(alice.did()),
+      audience: DID.from(bob.did()),
       capabilities: [
         {
           can: "access/identify",
@@ -970,5 +970,33 @@ describe("jwt representation", () => {
       expiration: ucan.expiration,
       signature: ucan.signature,
     })
+  })
+})
+
+describe("did", () => {
+  it("parse", () => {
+    const did = DID.parse(alice.did())
+    assert.equal(did.did(), alice.did())
+  })
+
+  it("decode", () => {
+    const bytes = new Uint8Array(DID.parse(alice.did()))
+    assert.equal(DID.decode(bytes).did(), alice.did())
+  })
+
+  it("from string", () => {
+    const did = DID.from(alice.did())
+    assert.equal(did.did(), alice.did())
+  })
+
+  it("from bytes", () => {
+    const bytes = new Uint8Array(DID.parse(alice.did()))
+    const did = DID.from(bytes)
+    assert.equal(did.did(), alice.did())
+  })
+
+  it("from did", () => {
+    const did = DID.parse(alice.did())
+    assert.equal(DID.from(did), did)
   })
 })
