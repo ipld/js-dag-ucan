@@ -10,8 +10,6 @@ import { CID } from "multiformats/cid"
 
 export * from "./ucan.js"
 
-export * as DID from "./did.js"
-
 /** @type {UCAN.Version} */
 export const VERSION = "0.8.1"
 export const name = "dag-ucan"
