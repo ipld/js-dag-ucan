@@ -1,10 +1,10 @@
 # @ipld/dag-ucan
 
-An implementation of [UCAN][]s representation in [IPLD][], designed for use with [multiformats][].
+An implementation of [UCAN][]s in [IPLD][] via [Advanced Data Layout (ADL)](ADL), designed for use with [multiformats][].
 
 ## Overview
 
-This library implements multicodec for represenating [UCAN]s natively in [IPLD][]. It uses [DAG-CBOR][] as a primary encoding, which is more compact and has a better hash consitency than a secondary RAW JWT encoding. Every UCAN in primary encoding can be formatted into a JWT string and consumed by spec compliant [UCAN][] implementations. However not every [UCAN][] can be encoded in a primary CBOR representation, as loss of whitespaces and key order would lead to mismatched signature. Library issues UCANs only in primary CBOR representation. When parsing UCANs that can not have valid CBOR representation, secondary RAW representation is used, which allows interop with all existing tokens in the wild.
+This library implements [ADL][] for representing [UCAN]s natively in [IPLD][]. It uses [DAG-CBOR][] as a primary encoding, which is hash consistent and more compact than a secondary RAW JWT encoding. Every UCAN in either encoding can be formatted into a valid JWT string and consumed by other spec compliant [UCAN][] implementations. However [UCAN][]s issued by other libraries may end up in represented in secondory RAW JWT encoding, that is because whitespaces and key order in JWT affects signatures and there for can't be represented accurately in CBOR. When parsing UCANs library will use CBOR representation and fallback to RAW JWT, which allows interop with all existing tokens in the wild.
 
 ### Primary Representation
 
@@ -13,47 +13,50 @@ UCANs in primary representation are encoded in [DAG-CBOR][] and have following
 
 ```ipldsch
 type UCAN struct {
-  header Heder
-  body Body
-  signature Signature
-}
-
-type Header struct {
   version String
-  algorithm Algorithm
-}
 
-type Body struct {
-  issuer String
-  audience String,
+  issuer SigningKey
+  audience SigningKey
+  signature Signature
+
   capabilities [Capability]
-  expiration Int
   proofs [&UCAN]
-  -- If empty omitted
-  facts optional [Fact]
+  expiration Int
+
+  facts [Fact]
   nonce optional String
   notBefore optional Int
+} representation map {
+  field facts default []
+  field proofs default []
 }
 
+
 type Capability struct {
-  with String
-  -- Must be all lowercase
-  can String
-  -- can have other fields
+  with Resource
+  can Ability
+  -- can have arbitrary other fields
 }
 
 type Fact { String: Any }
 
-enum Algorithm {
-  EdDSA (237)           -- 0xed   Ed25519 multicodec
-  RS256 (4613)          -- 0x1205 RSA multicodec
-} representation int
+
+-- The resource pointer in URI format
+type Resource = String
+
+-- Must be all lower-case `/` delimeted with at least one path segment
+type Ability = String
 
 -- Signature is computed by seralizing header & body
 -- into corresponding JSON with DAG-JSON (to achieve
 -- for hash consitency) then encoded into base64 and
 -- then signed by issuers private key
 type Signature = Bytes
+
+-- multicodec tagged public key
+-- 0xed       Ed25519
+-- 0x1205     RSA
+type SigningKey = Bytes
 ```
 
 ## API
@@ -62,13 +65,13 @@ type Signature = Bytes
 import * as UCAN from "@ipld/dag-ucan"
 ```
 
-#### `UCAN.parse(jwt: string): UCAN.UCAN`
+#### `UCAN.parse(jwt: string): UCAN.View`
 
 Parses UCAN formatted as JWT string into a representatino that can be encoded, formatted and queried.
 
 ```ts
 const ucan = UCAN.parse(jwt)
-ucan.issuer // did:key:zAlice
+ucan.issuer.did() // did:key:z6Mkk89bC3JrVqKie71YEcc5M1SMVxuCgNx6zLZ8SYJsxALi
 ```
 
 #### `UCAN.format(ucan: UCAN.UCAN): string`
@@ -83,29 +86,37 @@ UCAN.format(UCAN.parse(jwt)) === jwt // true
 
 Encodes UCAN into a binary representation.
 
+```ts
+UCAN.encode(UCAN.parse(jwt)) // Uint8Array(679)
+```
+
 #### `UCAN.decode(bytes: Uint8Array): UCAN.UCAN`
 
-Decodes byte encoded UCAN.
+Decodes UCAN from binary representation into object representation.
+
+```ts
+UCAN.decode(UCAN.encode(ucan))
+```
 
 #### `UCAN.issue(options: UCAN.UCANOptions): Promise<UCAN.UCAN>`
 
-Issues or derives a UCAN.
+Issues a signed UCAN.
 
-> Please note that no capability or time bound validation takes place
+> Please note that no capability or time bound validation takes place.
 
 ```ts
 const ucan = await UCAN.issue({
-  issuer: boris,
-  audience: 'did:key:z6MkffDZCkCTWreg8868fG1FGFogcJj5X6PY93pPcWDn9bob'
+  issuer: alice,
+  audience: bob,
   capabilities: [
     {
-      with: "wnfs://boris.fission.name/public/photos/",
-      can: "wnfs/append",
+      can: "fs/read",
+      with: `storage://${alice.did()}/public/photos/`,
     },
     {
-      with: "mailto:boris@fission.codes",
-      can: "msg/send"
-    }
+      can: "pin/add",
+      with: alice.did(),
+    },
   ],
 })
 ```
@@ -115,3 +126,4 @@ const ucan = await UCAN.issue({
 [ipld schema]: https://ipld.io/docs/schemas/using/authoring-guide/
 [dag-cbor]: https://ipld.io/docs/codecs/known/dag-cbor/
 [multiformats]: https://github.com/multiformats/js-multiformats
+[adl]: https://ipld.io/docs/advanced-data-layouts/

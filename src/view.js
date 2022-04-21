@@ -1,64 +1,51 @@
 import * as UCAN from "./ucan.js"
 import * as RAW from "multiformats/codecs/raw"
+import * as DID from "./did.js"
 
 /**
  * @template {UCAN.Capability} C
- * @template {typeof UCAN.code|typeof RAW.code} Code
- * @extends {View<C>}
+ * @implements {UCAN.View<C>}
  */
 class View {
   /**
-   * @param {Code} code
-   * @param {UCAN.Data<C>} data
+   * @param {UCAN.Model<C>} model
    */
-  constructor(code, { header, body, signature }) {
+  constructor(model) {
     /** @readonly */
-    this.code = code
-    /** @readonly */
-    this.header = header
-    /** @readonly */
-    this.body = body
-    /** @readonly */
-    this.signature = signature
+    this.model = model
   }
 
   get version() {
-    return this.header.version
-  }
-  get algorithm() {
-    return this.header.algorithm
+    return this.model.version
   }
 
   get issuer() {
-    return this.body.issuer
+    return this.model.issuer
   }
 
-  /**
-   * @returns {UCAN.DID}
-   */
   get audience() {
-    return this.body.audience
+    return this.model.audience
   }
 
   /**
    * @returns {C[]}
    */
   get capabilities() {
-    return this.body.capabilities
+    return this.model.capabilities
   }
 
   /**
    * @returns {number}
    */
   get expiration() {
-    return this.body.expiration
+    return this.model.expiration
   }
 
   /**
    * @returns {undefined|number}
    */
   get notBefore() {
-    return this.body.notBefore
+    return this.model.notBefore
   }
 
   /**
@@ -66,14 +53,14 @@ class View {
    */
 
   get nonce() {
-    return this.body.nonce
+    return this.model.nonce
   }
 
   /**
    * @returns {UCAN.Fact[]}
    */
   get facts() {
-    return this.body.facts
+    return this.model.facts
   }
 
   /**
@@ -81,37 +68,106 @@ class View {
    */
 
   get proofs() {
-    return this.body.proofs
+    return this.model.proofs
+  }
+
+  get signature() {
+    return this.model.signature
   }
 }
 
 /**
  * @template {UCAN.Capability} C
- * @extends {View<C, typeof RAW.code>}
+ * @implements {UCAN.View<C>}
  */
-class RAWView extends View {
+class JWTView extends Uint8Array {
   /**
-   *
-   * @param {UCAN.Data<C>} data
-   * @param {UCAN.JWT<UCAN.RAW<C>>} jwt
+   * @param {UCAN.Model<C>} model
+   * @param {object} bytes
+   * @param {ArrayBuffer} bytes.buffer
+   * @param {number} [bytes.byteOffset]
+   * @param {number} [bytes.byteLength]
    */
-  constructor(data, jwt) {
-    super(RAW.code, data)
-    this.jwt = jwt
+  constructor(
+    model,
+    { buffer, byteOffset = 0, byteLength = buffer.byteLength }
+  ) {
+    super(buffer, byteOffset, byteLength)
+    this.model = model
+  }
+
+  get version() {
+    return this.model.version
+  }
+
+  get issuer() {
+    return this.model.issuer
+  }
+
+  get audience() {
+    return this.model.audience
+  }
+
+  /**
+   * @returns {C[]}
+   */
+  get capabilities() {
+    return this.model.capabilities
+  }
+
+  /**
+   * @returns {number}
+   */
+  get expiration() {
+    return this.model.expiration
+  }
+
+  /**
+   * @returns {undefined|number}
+   */
+  get notBefore() {
+    return this.model.notBefore
+  }
+
+  /**
+   * @returns {undefined|string}
+   */
+
+  get nonce() {
+    return this.model.nonce
+  }
+
+  /**
+   * @returns {UCAN.Fact[]}
+   */
+  get facts() {
+    return this.model.facts
+  }
+
+  /**
+   * @returns {UCAN.Proof[]}
+   */
+
+  get proofs() {
+    return this.model.proofs
+  }
+
+  get signature() {
+    return this.model.signature
   }
 }
 
 /**
  * @template {UCAN.Capability} C
- * @param {UCAN.Data<C>} data
+ * @param {UCAN.Model<C>} data
  * @returns {UCAN.View<C>}
  */
-export const cbor = data => new View(UCAN.code, data)
+export const cbor = data => new View(data)
 
 /**
  * @template {UCAN.Capability} C
- * @param {UCAN.Data<C>} data
- * @param {UCAN.JWT<UCAN.RAW<C>>} jwt
+ * @param {UCAN.Model<C>} model
+ * @param {UCAN.ByteView<UCAN.JWT<C>>} bytes
  * @returns {UCAN.View<C>}
  */
-export const jwt = (data, jwt) => new RAWView(data, jwt)
+export const jwt = (model, bytes) => new JWTView(model, bytes)

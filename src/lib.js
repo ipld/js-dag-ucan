@@ -1,6 +1,6 @@
 import * as UCAN from "./ucan.js"
-import * as CBOR from "@ipld/dag-cbor"
-import * as RAW from "multiformats/codecs/raw"
+import * as CBOR from "./codec/cbor.js"
+import * as RAW from "./codec/raw.js"
 import * as UTF8 from "./utf8.js"
 import * as View from "./view.js"
 import * as Parser from "./parser.js"
@@ -9,13 +9,15 @@ import { sha256 } from "multiformats/hashes/sha2"
 import { CID } from "multiformats/cid"
 
 export * from "./ucan.js"
-import { code } from "./ucan.js"
+
+export * as DID from "./did.js"
 
 /** @type {UCAN.Version} */
 export const VERSION = "0.8.1"
 export const name = "dag-ucan"
 
-export const raw = RAW.code
+/** @type {typeof CBOR.code|typeof RAW.code} */
+export const code = CBOR.code
 
 /**
  * Encodes given UCAN (in either IPLD or JWT representation) and encodes it into
@@ -24,44 +26,10 @@ export const raw = RAW.code
  *
  * @template {UCAN.Capability} C
  * @param {UCAN.UCAN<C>} ucan
- * @returns {UCAN.ByteView<UCAN.UCAN<C>>}
+ * @returns {UCAN.ByteView<UCAN.Model<C>>|UCAN.ByteView<UCAN.JWT<C>>}
  */
-export const encode = ucan => {
-  switch (ucan.code) {
-    case code:
-      return CBOR.encode({
-        header: {
-          version: ucan.header.version,
-          algorithm: ucan.header.algorithm,
-        },
-        body: {
-          issuer: ucan.body.issuer,
-          audience: ucan.body.audience,
-          capabilities: ucan.body.capabilities.map(Parser.asCapability),
-          expiration: ucan.body.expiration,
-          proofs: ucan.body.proofs,
-          // leave out optionals unless they are set
-          ...(ucan.body.facts.length > 0 && { facts: ucan.body.facts }),
-          ...(ucan.body.nonce && { nonce: ucan.body.nonce }),
-          ...(ucan.body.notBefore && { notBefore: ucan.body.notBefore }),
-        },
-        signature: ucan.signature,
-      })
-    case raw:
-      return /** @type {Uint8Array} */ (UTF8.encode(ucan.jwt))
-    default:
-      return invalidCode(ucan)
-  }
-}
-
-/**
- * @param {never} ucan
- */
-const invalidCode = ({ code: unknown }) => {
-  throw new TypeError(
-    `Provided UCAN has unsupported code: ${unknown}, it must be ${code} for CBOR representation or ${raw} for JWT representation`
-  )
-}
+export const encode = ucan =>
+  ucan instanceof Uint8Array ? RAW.encode(ucan) : CBOR.encode(ucan)
 
 /**
  * Decodes binary encoded UCAN. It assumes UCAN is in primary IPLD
@@ -70,18 +38,15 @@ const invalidCode = ({ code: unknown }) => {
  * a JWT.
  *
  * @template {UCAN.Capability} C
- * @param {UCAN.ByteView<UCAN.UCAN<C>>} bytes
+ * @param {UCAN.ByteView<UCAN.Model<C>>|UCAN.ByteView<UCAN.JWT<C>>} bytes
  * @returns {UCAN.View<C>}
  */
 export const decode = bytes => {
   try {
-    const data = CBOR.decode(bytes)
-    data.body.facts = data.body.facts || []
-    data.body.nonce = data.body.nonce || undefined
-    data.body.notBefore = data.body.notBefore || undefined
-    return View.cbor(data)
+    return CBOR.decode(/** @type {UCAN.ByteView<UCAN.Model<C>>} */ (bytes))
   } catch (error) {
-    return parse(UTF8.decode(/** @type {Uint8Array} */ (bytes)))
+    const jwt = UTF8.decode(/** @type {UCAN.RAW<C>} */ (bytes))
+    return parse(jwt)
   }
 }
 
@@ -102,18 +67,22 @@ export const link = async (ucan, options) => {
 /**
  * @template {UCAN.Capability} C
  * @template {number} [A=typeof sha256.code]
- * @param {UCAN.UCAN<C>} ucan
+ * @param {UCAN.UCAN<C>} data
  * @param {{hasher?: UCAN.MultihashHasher<A>}} [options]
  */
 export const write = async (
-  ucan,
+  data,
   { hasher = /** @type {UCAN.MultihashHasher<any> } */ (sha256) } = {}
 ) => {
-  const bytes = encode(ucan)
+  const [code, bytes] =
+    data instanceof Uint8Array
+      ? [RAW.code, RAW.encode(data)]
+      : [CBOR.code, CBOR.encode(data)]
+
   const cid = /** @type {CID & UCAN.Proof<C, A>} */ (
-    CID.createV1(ucan.code, await hasher.digest(bytes))
+    CID.createV1(code, await hasher.digest(bytes))
   )
-  return { cid, bytes }
+  return { cid, bytes, data }
 }
 
 /**
@@ -129,18 +98,19 @@ export const write = async (
  * if it is not.
  *
  * @template {UCAN.Capability} C
- * @param {UCAN.JWT<UCAN.UCAN<C>>} input
+ * @param {UCAN.JWT<C>} jwt
  * @returns {UCAN.View<C>}
+
  */
-export const parse = input => {
-  const ucan = Parser.parse(input)
+export const parse = jwt => {
+  const model = Parser.parse(jwt)
 
   // If formatting UCAN produces same jwt string we can use IPLD representation
   // otherwise we need to fallback to raw representation. This decision will
   // affect how we `encode` the UCAN.
-  return Formatter.format(ucan) === input
-    ? View.cbor(ucan)
-    : View.jwt(ucan, /** @type {UCAN.JWT<UCAN.RAW<C>>} */ (input))
+  return Formatter.format(model) === jwt
+    ? View.cbor(model)
+    : View.jwt(model, UTF8.encode(jwt))
 }
 
 /**
@@ -148,18 +118,10 @@ export const parse = input => {
  *
  * @template {UCAN.Capability} C
  * @param {UCAN.UCAN<C>} ucan
- * @returns {UCAN.JWT<UCAN.UCAN<C>>}
+ * @returns {UCAN.JWT<C>}
  */
-export const format = ucan => {
-  switch (ucan.code) {
-    case code:
-      return Formatter.format(ucan)
-    case raw:
-      return ucan.jwt
-    default:
-      return invalidCode(ucan)
-  }
-}
+export const format = ucan =>
+  ucan instanceof Uint8Array ? UTF8.decode(ucan) : Formatter.format(ucan)
 
 /**
  * Creates a new signed token with a given `options.issuer`. If expiration is
@@ -182,31 +144,38 @@ export const issue = async ({
   proofs = [],
   nonce,
 }) => {
-  const header = {
+  const data = CBOR.match({
     version: VERSION,
-    algorithm: issuer.algorithm,
-  }
-
-  // Validate
-  if (!audience.startsWith("did:")) {
-    throw new TypeError("The audience must be a DID")
-  }
-
-  /** @type {UCAN.Body<C>} */
-  const body = {
-    issuer: issuer.did(),
-    audience,
-    capabilities: capabilities.map(Parser.asCapability),
+    issuer: parseDID(issuer, "issuer"),
+    audience: parseDID(audience, "audience"),
+    capabilities,
     facts,
     expiration,
     notBefore,
     proofs,
     nonce,
-  }
+    // Provide fake signature to pass validation
+    // we'll replace this with actual signature
+    signature: EMPTY,
+  })
 
-  const payload = UTF8.encode(Formatter.formatPayload({ header, body }))
-  /** @type {UCAN.Signature<[UCAN.Header, UCAN.Body<C>]>} */
+  const payload = UTF8.encode(Formatter.formatPayload(data))
+  /** @type {UCAN.Signature<C>} */
   const signature = await issuer.sign(payload)
 
-  return View.cbor({ header, body, signature })
+  return View.cbor({ ...data, signature })
 }
+
+/**
+ *
+ * @param {unknown & {did?:unknown}} value
+ * @param {string} context
+ */
+const parseDID = (value, context) =>
+  value && typeof value.did === "function"
+    ? Parser.parseDID(value.did(), `${context}.did()`)
+    : Parser.ParseError.throw(
+        `The ${context}.did() must be a function that returns DID`
+      )
+
+const EMPTY = new Uint8Array()

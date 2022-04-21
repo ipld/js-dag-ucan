@@ -4,13 +4,14 @@ import type {
 } from "multiformats/hashes/interface"
 import type { MultibaseEncoder } from "multiformats/bases/interface"
 import type { code as RAW_CODE } from "multiformats/codecs/raw"
-import type { Signer, Signature } from "./crypto.js"
+import type { code as CBOR_CODE } from "@ipld/dag-cbor"
+import type { Signer } from "./crypto.js"
+import * as Crypto from "./crypto.js"
 
 export * from "./crypto.js"
 
 export type { MultihashDigest, MultibaseEncoder, MultihashHasher }
 
-export const code = 0x78c0
 export type Fact = Record<string, unknown>
 
 export interface Agent {
@@ -38,35 +39,72 @@ export interface Body<C extends Capability = Capability> {
   facts: Fact[]
   proofs: Proof[]
 }
-export type JWT<T> = ToString<T>
+export type JWT<C extends Capability = Capability> = ToString<
+  [Head, Payload<C>, Signature<C>],
+  `${ToString<Head>}.${ToString<Payload<C>>}.${ToString<Signature<C>>}`
+>
 
-export type UCAN<C extends Capability = Capability> = CBOR<C> | RAW<C>
+export type Signature<C extends Capability = Capability> =
+  Crypto.Signature<`${ToString<Head>}.${ToString<Payload<C>>}>`>
 
-export interface Data<C extends Capability = Capability> {
-  readonly header: Header
-  readonly body: Body<C>
-  readonly signature: Signature<[Header, Body<C>]>
-}
-export interface CBOR<C extends Capability = Capability> extends Data<C> {
-  readonly code: typeof code
-}
-
-export interface RAW<C extends Capability = Capability> {
-  readonly code: typeof RAW_CODE
-  readonly jwt: JWT<RAW<C>>
+interface Head {
+  ucv: Version
+  alg: "EdDSA" | "RS256"
+  typ: "JWT"
 }
 
-export type View<C extends Capability = Capability> = UCAN<C> &
-  Data<C> &
-  Header &
-  Body<C>
+export interface Payload<C extends Capability> {
+  iss: DID
+  aud: DID
+  exp: number
+  att: C[]
+  nnc?: string
+  nbf?: number
+  fct?: Fact[]
+  prf?: ToString<Proof<C>>
+}
+
+export type UCAN<C extends Capability = Capability> = Model<C> | RAW<C>
+
+// export interface Data<C extends Capability = Capability> {
+//   readonly header: Header
+//   readonly body: Body<C>
+//   readonly signature: Signature<[Header, Body<C>]>
+// }
+// export interface CBOR<C extends Capability = Capability> extends Data<C> {
+//   readonly code: typeof code
+// }
+
+export interface Input<C extends Capability = Capability> {
+  version: Version
+  issuer: ByteView<DID>
+  audience: ByteView<DID>
+  capabilities: C[]
+  expiration: number
+  notBefore?: number
+  nonce?: string
+  facts: Fact[]
+  proofs: Proof[]
+}
+
+export interface Model<C extends Capability = Capability> extends Input<C> {
+  signature: Signature<C>
+}
+
+export interface RAW<C extends Capability = Capability>
+  extends Model<C>,
+    ByteView<JWT<C>> {}
+
+export interface View<C extends Capability = Capability> extends Model<C> {
+  readonly model: Model<C>
+}
 
 export interface UCANOptions<
   C extends Capability = Capability,
   A extends number = number
 > {
   issuer: Issuer<A>
-  audience: DID
+  audience: Agent
   capabilities: C[]
   lifetimeInSeconds?: number
   expiration?: number
@@ -81,7 +119,7 @@ export interface UCANOptions<
 export type Proof<
   C extends Capability = Capability,
   A extends number = number
-> = Link<Data<C>, 1, typeof code, A> | Link<JWT<Data<C>>, 1, typeof RAW_CODE, A>
+> = Link<Model<C>, 1, typeof CBOR_CODE, A> | Link<JWT<C>, 1, typeof RAW_CODE, A>
 
 export interface Block<
   T extends unknown = unknown,
@@ -104,6 +142,7 @@ export interface Capability<
 }
 
 export type DID<T = unknown> = ToString<T, `did:${string}`>
+export interface DIDView extends ByteView<DID>, Agent {}
 
 /**
  * Represents an IPLD link to a specific data of type `T`.

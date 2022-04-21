@@ -1,61 +1,64 @@
 import * as UCAN from "./ucan.js"
+import * as DID from "./did.js"
 import * as json from "@ipld/dag-json"
 import { base64urlpad } from "multiformats/bases/base64"
+import { algorithm, ED25519, RSA } from "./did.js"
 
 /**
  * @template {UCAN.Capability} C
- * @param {UCAN.Data<C>} data
- * @returns {UCAN.JWT<UCAN.CBOR<C>>}
+ * @param {UCAN.Model<C>} model
+ * @returns {UCAN.JWT<C>}
  */
-export const format = ({ header, body, signature }) =>
-  `${formatHeader(header)}.${formatBody(body)}.${formatSignature(signature)}`
+export const format = model =>
+  `${formatHeader(model)}.${formatBody(model)}.${formatSignature(
+    model.signature
+  )}`
 
 /**
  * @template {UCAN.Capability} C
- * @param {object} payload
- * @param {UCAN.Header} payload.header
- * @param {UCAN.Body<C>} payload.body
+ * @param {UCAN.Input<C>} model
  * @returns {`${UCAN.Header}.${UCAN.Body}`}
  */
-export const formatPayload = ({ header, body }) =>
-  `${formatHeader(header)}.${formatBody(body)}`
+export const formatPayload = model =>
+  `${formatHeader(model)}.${formatBody(model)}`
 
 /**
- * @param {UCAN.Header} header
+ * @param {UCAN.Input} model
  * @returns {`${UCAN.Header}`}
  */
-export const formatHeader = header =>
-  base64urlpad.baseEncode(encodeHeader(header))
+export const formatHeader = model =>
+  base64urlpad.baseEncode(encodeHeader(model))
 
 /**
- * @param {UCAN.Body} body
+ * @param {UCAN.Input} model
  * @returns {`${UCAN.Body}`}
  */
-export const formatBody = body => base64urlpad.baseEncode(encodeBody(body))
+export const formatBody = model => base64urlpad.baseEncode(encodeBody(model))
 
 /**
  * @template {UCAN.Capability} C
- * @param {UCAN.Signature<[UCAN.Header, UCAN.Body<C>]>} signature
+ * @param {UCAN.Signature<C>} signature
+ * @returns {UCAN.ToString<UCAN.Signature<C>>}
  */
 export const formatSignature = signature => base64urlpad.baseEncode(signature)
 
 /**
- * @param {UCAN.Header} header
+ * @param {UCAN.Input} model
  */
-export const encodeHeader = header =>
+export const encodeHeader = model =>
   json.encode({
-    alg: encodeAgorithm(header.algorithm),
-    ucv: header.version,
+    alg: encodeAgorithm(model),
+    ucv: model.version,
     typ: "JWT",
   })
 
 /**
- * @param {UCAN.Body} body
+ * @param {UCAN.Input} body
  */
 export const encodeBody = body =>
   json.encode({
-    iss: body.issuer,
-    aud: body.audience,
+    iss: DID.format(body.issuer),
+    aud: DID.format(body.audience),
     att: body.capabilities,
     exp: body.expiration,
     prf: body.proofs.map(encodeProof),
@@ -71,17 +74,16 @@ export const encodeBody = body =>
 export const encodeProof = proof => proof.toString()
 
 /**
- * @template {number} Code
- * @param {Code} code
+ * @param {UCAN.Input} model
  */
-export const encodeAgorithm = code => {
-  switch (code) {
-    case 0xed:
+export const encodeAgorithm = model => {
+  switch (algorithm(model.issuer)) {
+    case ED25519:
       return "EdDSA"
-    case 0x1205:
+    case RSA:
       return "RS256"
     /* c8 ignore next 2 */
     default:
-      throw new RangeError(`Unknown KeyType "${code}"`)
+      throw new RangeError(`Unknown KeyType "${algorithm(model.issuer)}"`)
   }
 }
