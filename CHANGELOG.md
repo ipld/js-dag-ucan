@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0-beta](https://github.com/ipld/js-dag-ucan/compare/v1.1.1-beta...v1.2.0-beta) (2022-04-21)
+
+
+### Features
+
+* ADL implementation ([#15](https://github.com/ipld/js-dag-ucan/issues/15)) ([fdc2113](https://github.com/ipld/js-dag-ucan/commit/fdc2113766f89f9814e049ec8a78cf9853927d91))
+
 ### [1.1.1-beta](https://github.com/ipld/js-dag-ucan/compare/v1.1.0-beta...v1.1.1-beta) (2022-04-15)
 
 
