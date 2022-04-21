@@ -4,14 +4,15 @@ import { base64urlpad } from "multiformats/bases/base64"
 import * as json from "@ipld/dag-json"
 import { CID } from "multiformats"
 import { identity } from "multiformats/hashes/identity"
+import * as DID from "./did.js"
 import * as raw from "multiformats/codecs/raw"
 
 /**
  * Parse JWT formatted UCAN. Note than no validation takes place here.
  *
  * @template {UCAN.Capability} C
- * @param {UCAN.JWT<UCAN.UCAN<C>>} input
- * @returns {UCAN.Data<C>}
+ * @param {UCAN.JWT<C>} input
+ * @returns {UCAN.Model<C>}
  */
 export const parse = input => {
   const segments = input.split(".")
@@ -23,55 +24,72 @@ export const parse = input => {
         )
 
   return {
-    header: parseHeader(header),
-    body: parseBody(body),
+    ...parseHeader(header),
+    ...parseBody(body),
     signature: base64urlpad.baseDecode(signature),
   }
 }
 
 /**
  * @param {string} header
- * @returns {UCAN.Header}
  */
 export const parseHeader = header => {
   const { ucv, alg, typ } = json.decode(base64urlpad.baseDecode(header))
 
   const _type = parseJWT(typ)
+  const _algorithm = parseAlgorithm(alg)
 
   return {
-    version: parseUCV(ucv),
-    algorithm: parseAlgorithm(alg),
+    version: parseVersion(ucv, "ucv"),
   }
 }
 
 /**
  * @template {UCAN.Capability} C
  * @param {string} input
- * @returns {UCAN.Body<C>}
  */
 export const parseBody = input => {
+  /** @type {UCAN.Payload<C>} */
   const body = json.decode(base64urlpad.baseDecode(input))
 
   return {
-    issuer: parseDID(body.iss),
-    audience: parseDID(body.aud),
-    expiration: parseInt(body.exp, 10),
+    issuer: parseDID(body.iss, "iss"),
+    audience: parseDID(body.aud, "aud"),
+    expiration: parseInt(body.exp, "exp"),
     nonce: parseOptionalString(body.nnc, "nnc"),
-    notBefore: parseMaybeInt(body.nbf, "nbf"),
+    notBefore: parseOptionalInt(body.nbf, "nbf"),
     facts: parseOptionalArray(body.fct, parseFact, "fct") || [],
-    proofs: parseProofs(body.prf),
-    capabilities: /** @type {C[]} */ (
-      parseArray(body.att, parseCapability, "att")
-    ),
+    proofs: parseProofs(body.prf, "prf"),
+    capabilities: /** @type {C[]} */ (parseCapabilities(body.att, "att")),
   }
 }
 
 /**
  * @param {unknown} input
+ * @param {string} name
+ * @returns {number}
+ */
+export const parseInt = (input, name) =>
+  Number.isInteger(input)
+    ? /** @type {number} */ (input)
+    : ParseError.throw(
+        `Expected integer but instead got '${name}: ${JSON.stringify(input)}'`
+      )
+
+/**
+ * @param {unknown} input
+ * @param {string} context
  */
 
-const parseCapability = input => parseStruct(input, asCapability, "att")
+export const parseCapability = (input, context) =>
+  parseStruct(input, asCapability, context)
 
+/**
+ * @param {unknown} input
+ * @param {string} context
+ */
+export const parseCapabilities = (input, context) =>
+  parseArray(input, parseCapability, context)
 /**
  * @template {UCAN.Capability} C
  * @param {object & {can?:unknown, with?:unknown}|C} input
@@ -148,23 +166,23 @@ const parseURL = input => {
 /**
  * @template T
  * @param {unknown} input
- * @param {(input:unknown) => T} parser
+ * @param {(input:unknown, context:string) => T} parser
  * @param {string} context
  * @returns {T[]}
  */
-const parseArray = (input, parser, context) =>
+export const parseArray = (input, parser, context) =>
   Array.isArray(input)
-    ? input.map(parser)
+    ? input.map((element, n) => parser(element, `${context}[${n}]`))
     : ParseError.throw(`${context} must be an array`)
 
 /**
  * @template T
  * @param {unknown} input
- * @param {(input:unknown) => T} parser
+ * @param {(input:unknown, context: string) => T} parser
  * @param {string} context
  * @returns {T[]|undefined}
  */
-const parseOptionalArray = (input, parser, context) =>
+export const parseOptionalArray = (input, parser, context) =>
   input === undefined ? input : parseArray(input, parser, context)
 
 /**
@@ -174,35 +192,42 @@ const parseOptionalArray = (input, parser, context) =>
  * @param {string} context
  * @returns {T}
  */
-const parseStruct = (input, parser, context) =>
+export const parseStruct = (input, parser, context) =>
   input != null && typeof input === "object"
     ? parser(input)
-    : ParseError.throw(`${context} must be of type object`)
+    : ParseError.throw(
+        `${context} must be of type object, instead got ${input}`
+      )
 
 /**
  * @param {unknown} input
+ * @param {string} context
  * @returns {UCAN.Fact}
  */
-const parseFact = input => parseStruct(input, Object, "fct elements")
+export const parseFact = (input, context) => parseStruct(input, Object, context)
 
 /**
  * @param {unknown} input
+ * @param {string} context
  */
-const parseProofs = input =>
+const parseProofs = (input, context) =>
   Array.isArray(input)
-    ? parseArray(input, parseProof, "prf")
-    : [parseProof(input)]
+    ? parseArray(input, parseProof, context)
+    : [parseProof(input, context)]
 
 /**
  * @param {unknown} input
+ * @param {string} context
  * @returns {UCAN.Proof}
  */
-const parseProof = input => {
+const parseProof = (input, context) => {
   const proof =
     typeof input === "string"
       ? input
       : ParseError.throw(
-          `prf has invalid value ${JSON.stringify(input)}, must be a string`
+          `${context} has invalid value ${JSON.stringify(
+            input
+          )}, must be a string`
         )
   try {
     return /** @type {UCAN.Proof} */ (CID.parse(proof))
@@ -215,18 +240,20 @@ const parseProof = input => {
 
 /**
  * @param {unknown} input
- * @returns {UCAN.DID}
+ * @param {string} context
  */
-const parseDID = input =>
+export const parseDID = (input, context) =>
   typeof input === "string" && input.startsWith("did:")
-    ? /** @type {UCAN.DID} */ (input)
-    : ParseError.throw(`DID has invalid representation '${input}'`)
+    ? DID.parse(/** @type {UCAN.DID} */ (input))
+    : ParseError.throw(
+        `DID has invalid representation '${context}: ${JSON.stringify(input)}'`
+      )
 
 /**
  * @param {unknown} input
  * @param {string} [context]
  */
-const parseOptionalString = (input, context = "Field") => {
+export const parseOptionalString = (input, context = "Field") => {
   switch (typeof input) {
     case "string":
     case "undefined":
@@ -238,14 +265,14 @@ const parseOptionalString = (input, context = "Field") => {
 
 /**
  * @param {unknown} input
- * @param {string} [context]
+ * @param {string} context
  */
-const parseMaybeInt = (input, context = "Field") => {
+export const parseOptionalInt = (input, context) => {
   switch (typeof input) {
     case "undefined":
       return undefined
     case "number":
-      return parseInt(/** @type {any} */ (input), 10)
+      return parseInt(/** @type {any} */ (input), context)
     default:
       return ParseError.throw(
         `${context} has invalid value ${JSON.stringify(input)}`
@@ -255,13 +282,26 @@ const parseMaybeInt = (input, context = "Field") => {
 
 /**
  * @param {unknown} input
+ * @param {string} context
  * @returns {UCAN.Version}
  */
-const parseUCV = input =>
+export const parseVersion = (input, context) =>
   /\d+\.\d+\.\d+/.test(/** @type {string} */ (input))
     ? /** @type {UCAN.Version} */ (input)
-    : ParseError.throw(`Header has invalid version 'ucv: "${input}"'`)
+    : ParseError.throw(`Invalid version '${context}: ${JSON.stringify(input)}'`)
 
+/**
+ *
+ * @param {unknown} input
+ * @param {string} context
+ * @returns {Uint8Array}
+ */
+export const parseBytes = (input, context) =>
+  input instanceof Uint8Array
+    ? input
+    : ParseError.throw(
+        `${context} must be Uint8Array, instead got ${JSON.stringify(input)}`
+      )
 /**
  * @param {unknown} input
  * @returns {"JWT"}
@@ -287,7 +327,10 @@ const parseAlgorithm = input => {
   }
 }
 
-class ParseError extends TypeError {
+export class ParseError extends TypeError {
+  get name() {
+    return "ParseError"
+  }
   /**
    * @param {string} message
    * @returns {never}

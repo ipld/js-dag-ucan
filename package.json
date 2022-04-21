@@ -53,6 +53,14 @@
     "./src/lib.js": {
       "types": "./dist/src/lib.d.ts",
       "import": "./src/lib.js"
+    },
+    "./src/codec/cbor.js": {
+      "types": "./dist/src/codec/cbor.d.ts",
+      "import": "./src/codec/cbor.js"
+    },
+    "./src/codec/raw.js": {
+      "types": "./dist/src/codec/raw.d.ts",
+      "import": "./src/codec/raw.js"
     }
   },
   "c8": {

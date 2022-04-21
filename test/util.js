@@ -24,12 +24,14 @@ export const assertCompatible = ucan =>
   })
 
 /**
- * @param {UCAN.View} actual
- * @param {Partial<UCAN.View>} expect
+ * @template {UCAN.Capability} T
+ * @param {UCAN.View<T>} actual
+ * @param {Partial<UCAN.View<T>>} expect
  */
 export const assertUCAN = (actual, expect) => {
   assertUCANIncludes(actual, expect)
   assertUCANIncludes(UCAN.parse(UCAN.format(actual)), expect)
+
   assertUCANIncludes(UCAN.decode(UCAN.encode(actual)), expect)
 }
 /**
@@ -54,7 +56,8 @@ export const assertFormatLoop = actual => {
  * @param {UCAN.View} actual
  */
 export const assertCodecLoop = actual => {
-  assert.deepEqual(UCAN.decode(UCAN.encode(actual)), actual)
+  const t = UCAN.encode(actual)
+  assert.deepEqual(UCAN.decode(t), actual)
 }
 
 /**
@@ -62,19 +65,12 @@ export const assertCodecLoop = actual => {
  */
 export const createEdIssuer = secret =>
   /** @type {UCAN.Issuer & TSUCAN.EdKeypair} */
-  (
-    Object.assign(TSUCAN.EdKeypair.fromSecretKey(secret), {
-      algorithm: 0xed,
-    })
-  )
 
-export const createRSAIssuer = async () =>
-  /** @type {UCAN.Issuer & TSUCAN.RsaKeypair} */
-  (
-    Object.assign(await TSUCAN.RsaKeypair.create(), {
-      algorithm: 0x1205,
-    })
-  )
+  (TSUCAN.EdKeypair.fromSecretKey(secret))
+
+export const createRSAIssuer = () =>
+  /** @type {Promise<UCAN.Issuer & TSUCAN.RsaKeypair>} */
+  (TSUCAN.RsaKeypair.create())
 
 /**
  *

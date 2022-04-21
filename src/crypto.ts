@@ -14,7 +14,7 @@ export interface SyncVerifier<A extends number> {
   ): T
 }
 
-export interface Verifier<A extends number> {
+export interface Verifier<A extends number = number> {
   readonly algorithm: A
   verify<S extends Signer<A>, T>(
     payload: ByteView<T>,
