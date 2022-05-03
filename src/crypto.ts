@@ -19,7 +19,7 @@ export interface Verifier<A extends number = number> {
   verify<S extends Signer<A>, T>(
     payload: ByteView<T>,
     signature: Signature<T, S>
-  ): Await<T>
+  ): Await<boolean>
 }
 
 export interface SyncSigner<A extends number = number> {
