@@ -1,5 +1,12 @@
 # Changelog
 
+### [1.2.4-beta](https://github.com/ipld/js-dag-ucan/compare/v1.2.3-beta...v1.2.4-beta) (2022-05-03)
+
+
+### Bug Fixes
+
+* verifier types ([#25](https://github.com/ipld/js-dag-ucan/issues/25)) ([6ca5de5](https://github.com/ipld/js-dag-ucan/commit/6ca5de509f85f8dcded66cfa40f61242baf56bfd))
+
 ### [1.2.3-beta](https://github.com/ipld/js-dag-ucan/compare/v1.2.2-beta...v1.2.3-beta) (2022-04-21)
 
 
