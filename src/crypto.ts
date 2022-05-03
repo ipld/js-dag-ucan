@@ -3,7 +3,7 @@ export interface AsyncVerifier<A extends number> {
   verify<S extends Signer<A>, T>(
     payload: ByteView<T>,
     signature: Signature<T, S>
-  ): PromiseLike<T>
+  ): PromiseLike<boolean>
 }
 
 export interface SyncVerifier<A extends number> {
@@ -11,7 +11,7 @@ export interface SyncVerifier<A extends number> {
   verify<S extends Signer<A>, T>(
     payload: ByteView<T>,
     signature: Signature<T, S>
-  ): T
+  ): boolean
 }
 
 export interface Verifier<A extends number = number> {
@@ -19,7 +19,7 @@ export interface Verifier<A extends number = number> {
   verify<S extends Signer<A>, T>(
     payload: ByteView<T>,
     signature: Signature<T, S>
-  ): T
+  ): Await<boolean>
 }
 
 export interface SyncSigner<A extends number = number> {
