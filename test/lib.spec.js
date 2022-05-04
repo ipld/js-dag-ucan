@@ -9,6 +9,7 @@ import * as UTF8 from "../src/utf8.js"
 import * as DID from "../src/did.js"
 import { identity } from "multiformats/hashes/identity"
 import {
+  Verifier,
   createRSAIssuer,
   assertCompatible,
   assertUCAN,
@@ -46,7 +47,7 @@ describe("dag-ucan", () => {
       proofs: [],
     })
 
-    assert.ok(ucan.expiration > Date.now() / 1000)
+    assert.ok(ucan.expiration > UCAN.now())
   })
 
   it("dervie token", async () => {
@@ -205,7 +206,7 @@ describe("dag-ucan", () => {
   })
 
   it("with notBefore", async () => {
-    const now = Math.floor(Date.now() / 1000)
+    const now = UCAN.now()
     const root = await UCAN.issue({
       issuer: alice,
       audience: bob,
@@ -263,7 +264,7 @@ describe("dag-ucan", () => {
 describe("errors", () => {
   it("throws on bad audience", async () => {
     try {
-      const root = await UCAN.issue({
+      await UCAN.issue({
         issuer: alice,
         // @ts-expect-error
         audience: "bob",
@@ -998,5 +999,104 @@ describe("did", () => {
   it("from did", () => {
     const did = DID.parse(alice.did())
     assert.equal(DID.from(did), did)
+  })
+})
+
+describe("verify", () => {
+  it("expired", async () => {
+    const ucan = await UCAN.issue({
+      issuer: alice,
+      audience: alice,
+      expiration: UCAN.now() - 10, // expires 10 seconds ago
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "store/put",
+        },
+      ],
+    })
+
+    assert.equal(UCAN.isExpired(ucan), true)
+    assert.equal(UCAN.isTooEarly(ucan), false)
+  })
+
+  it("too early", async () => {
+    const ucan = await UCAN.issue({
+      issuer: alice,
+      audience: alice,
+      notBefore: UCAN.now() + 10, // valid in 10 seconds
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "store/put",
+        },
+      ],
+    })
+
+    assert.equal(UCAN.isExpired(ucan), false)
+    assert.equal(UCAN.isTooEarly(ucan), true)
+  })
+
+  it("invalid time range", async () => {
+    const ucan = await UCAN.issue({
+      issuer: alice,
+      audience: alice,
+      expiration: UCAN.now() - 10,
+      notBefore: UCAN.now() + 10,
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "store/put",
+        },
+      ],
+    })
+
+    assert.equal(UCAN.isExpired(ucan), true)
+    assert.equal(UCAN.isTooEarly(ucan), true)
+  })
+
+  it("verify signatures", async () => {
+    const ucan = await UCAN.issue({
+      issuer: alice,
+      audience: alice,
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "store/put",
+        },
+      ],
+    })
+
+    assert.equal(await UCAN.verifySignature(ucan, Verifier), true)
+  })
+
+  it("invalid signature", async () => {
+    const ucan = await UCAN.issue({
+      issuer: alice,
+      audience: alice,
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "store/put",
+        },
+      ],
+    })
+
+    const fake = await UCAN.issue({
+      issuer: alice,
+      audience: alice,
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "store/fake",
+        },
+      ],
+    })
+
+    Object.defineProperties(ucan, {
+      signature: { value: fake.signature },
+    })
+
+    assert.equal(await UCAN.verifySignature(ucan, Verifier), false)
   })
 })

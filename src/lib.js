@@ -166,6 +166,38 @@ export const issue = async ({
 }
 
 /**
+ * Verifies UCAN signature.
+ *
+ * @template {UCAN.Capability} C
+ * @param {UCAN.Model} ucan
+ * @param {(bytes:Uint8Array) => UCAN.Verifier} Verifier
+ */
+export const verifySignature = (ucan, Verifier) =>
+  Verifier(ucan.issuer).verify(
+    UTF8.encode(Formatter.formatPayload(ucan)),
+    ucan.signature
+  )
+
+/**
+ * Check if a UCAN is expired.
+ *
+ * @param {UCAN.Model} ucan
+ */
+export const isExpired = ucan => ucan.expiration <= now()
+
+/**
+ * Check if a UCAN is not active yet.
+ * @param {UCAN.Model} ucan
+ */
+export const isTooEarly = ucan =>
+  ucan.notBefore != null && now() <= ucan.notBefore
+
+/**
+ * Returns UTC Unix timestamp for comparing it against time window of the UCAN.
+ */
+export const now = () => Math.floor(Date.now() / 1000)
+
+/**
  *
  * @param {unknown & {did?:unknown}} value
  * @param {string} context
