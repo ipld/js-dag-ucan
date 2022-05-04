@@ -7,6 +7,7 @@ import * as Parser from "./parser.js"
 import * as Formatter from "./formatter.js"
 import { sha256 } from "multiformats/hashes/sha2"
 import { CID } from "multiformats/cid"
+import { format as formatDID } from "./did.js"
 
 export * from "./ucan.js"
 
@@ -169,14 +170,12 @@ export const issue = async ({
  * Verifies UCAN signature.
  *
  * @template {UCAN.Capability} C
- * @param {UCAN.Model} ucan
- * @param {(bytes:Uint8Array) => UCAN.Verifier} Verifier
+ * @param {UCAN.Model<C>} ucan
+ * @param {UCAN.Verifier & UCAN.Agent} verifier
  */
-export const verifySignature = (ucan, Verifier) =>
-  Verifier(ucan.issuer).verify(
-    UTF8.encode(Formatter.formatPayload(ucan)),
-    ucan.signature
-  )
+export const verifySignature = (ucan, verifier) =>
+  formatDID(ucan.issuer) === verifier.did() &&
+  verifier.verify(UTF8.encode(Formatter.formatPayload(ucan)), ucan.signature)
 
 /**
  * Check if a UCAN is expired.

@@ -1067,7 +1067,9 @@ describe("verify", () => {
       ],
     })
 
-    assert.equal(await UCAN.verifySignature(ucan, Verifier), true)
+    console.log(Verifier(ucan.issuer))
+
+    assert.equal(await UCAN.verifySignature(ucan, Verifier(ucan.issuer)), true)
   })
 
   it("invalid signature", async () => {
@@ -1097,6 +1099,24 @@ describe("verify", () => {
       signature: { value: fake.signature },
     })
 
-    assert.equal(await UCAN.verifySignature(ucan, Verifier), false)
+    assert.equal(await UCAN.verifySignature(ucan, Verifier(ucan.issuer)), false)
+  })
+
+  it("invalid signer", async () => {
+    const ucan = await UCAN.issue({
+      issuer: alice,
+      audience: alice,
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "store/put",
+        },
+      ],
+    })
+
+    assert.equal(
+      await UCAN.verifySignature(ucan, Verifier(DID.parse(bob.did()))),
+      false
+    )
   })
 })

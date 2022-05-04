@@ -7,6 +7,7 @@ import * as json from "@ipld/dag-json"
 import * as UTF8 from "../src/utf8.js"
 import * as ED25519 from "@noble/ed25519"
 import * as API from "../src/ucan.js"
+import * as DID from "../src/did.js"
 
 /**
  * @param {UCAN.UCAN} ucan
@@ -77,7 +78,7 @@ export const createRSAIssuer = () =>
 
 /**
  * @param {Uint8Array} bytes
- * @returns {API.Verifier}
+ * @returns {API.Verifier & API.Agent}
  */
 export const Verifier = bytes => {
   const [algorithm, length] = varint.decode(bytes)
@@ -91,6 +92,7 @@ export const Verifier = bytes => {
   const verify = (payload, signature) => ED25519.verify(signature, payload, key)
 
   return {
+    did: () => DID.format(bytes),
     algorithm,
     verify,
   }
