@@ -2,8 +2,11 @@ import * as UCAN from "../src/lib.js"
 import * as TSUCAN from "./ts-ucan.cjs"
 import { assert } from "chai"
 import { base64urlpad } from "multiformats/bases/base64"
+import { varint } from "multiformats"
 import * as json from "@ipld/dag-json"
 import * as UTF8 from "../src/utf8.js"
+import * as ED25519 from "@noble/ed25519"
+import * as API from "../src/ucan.js"
 
 /**
  * @param {UCAN.UCAN} ucan
@@ -71,6 +74,27 @@ export const createEdIssuer = secret =>
 export const createRSAIssuer = () =>
   /** @type {Promise<UCAN.Issuer & TSUCAN.RsaKeypair>} */
   (TSUCAN.RsaKeypair.create())
+
+/**
+ * @param {Uint8Array} bytes
+ * @returns {API.Verifier}
+ */
+export const Verifier = bytes => {
+  const [algorithm, length] = varint.decode(bytes)
+  const key = bytes.subarray(length)
+  /**
+   *
+   * @param {Uint8Array} payload
+   * @param {Uint8Array} signature
+   * @returns
+   */
+  const verify = (payload, signature) => ED25519.verify(signature, payload, key)
+
+  return {
+    algorithm,
+    verify,
+  }
+}
 
 /**
  *
