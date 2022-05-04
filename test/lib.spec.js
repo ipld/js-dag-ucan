@@ -1067,8 +1067,6 @@ describe("verify", () => {
       ],
     })
 
-    console.log(Verifier(ucan.issuer))
-
     assert.equal(await UCAN.verifySignature(ucan, Verifier(ucan.issuer)), true)
   })
 
