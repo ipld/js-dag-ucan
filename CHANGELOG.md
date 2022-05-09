@@ -1,5 +1,12 @@
 # Changelog
 
+### [1.4.1-beta](https://github.com/ipld/js-dag-ucan/compare/v1.4.0-beta...v1.4.1-beta) (2022-05-09)
+
+
+### Bug Fixes
+
+* remove signature overload type ([#32](https://github.com/ipld/js-dag-ucan/issues/32)) ([71ba4a9](https://github.com/ipld/js-dag-ucan/commit/71ba4a9360df3247043f5cbebfcfaec645d81388))
+
 ## [1.4.0-beta](https://github.com/ipld/js-dag-ucan/compare/v1.3.0-beta...v1.4.0-beta) (2022-05-09)
 
 
