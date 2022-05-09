@@ -9,7 +9,7 @@ import * as UTF8 from "../src/utf8.js"
 import * as DID from "../src/did.js"
 import { identity } from "multiformats/hashes/identity"
 import {
-  Verifier,
+  decodeAuthority,
   createRSAIssuer,
   assertCompatible,
   assertUCAN,
@@ -1067,7 +1067,10 @@ describe("verify", () => {
       ],
     })
 
-    assert.equal(await UCAN.verifySignature(ucan, Verifier(ucan.issuer)), true)
+    assert.equal(
+      await UCAN.verifySignature(ucan, decodeAuthority(ucan.issuer)),
+      true
+    )
   })
 
   it("invalid signature", async () => {
@@ -1097,7 +1100,10 @@ describe("verify", () => {
       signature: { value: fake.signature },
     })
 
-    assert.equal(await UCAN.verifySignature(ucan, Verifier(ucan.issuer)), false)
+    assert.equal(
+      await UCAN.verifySignature(ucan, decodeAuthority(ucan.issuer)),
+      false
+    )
   })
 
   it("invalid signer", async () => {
@@ -1113,7 +1119,7 @@ describe("verify", () => {
     })
 
     assert.equal(
-      await UCAN.verifySignature(ucan, Verifier(DID.parse(bob.did()))),
+      await UCAN.verifySignature(ucan, decodeAuthority(DID.parse(bob.did()))),
       false
     )
   })

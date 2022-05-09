@@ -171,11 +171,11 @@ export const issue = async ({
  *
  * @template {UCAN.Capability} C
  * @param {UCAN.Model<C>} ucan
- * @param {UCAN.Verifier & UCAN.Agent} verifier
+ * @param {UCAN.Authority} authority
  */
-export const verifySignature = (ucan, verifier) =>
-  formatDID(ucan.issuer) === verifier.did() &&
-  verifier.verify(UTF8.encode(Formatter.formatPayload(ucan)), ucan.signature)
+export const verifySignature = (ucan, authority) =>
+  formatDID(ucan.issuer) === authority.did() &&
+  authority.verify(UTF8.encode(Formatter.formatPayload(ucan)), ucan.signature)
 
 /**
  * Check if a UCAN is expired.

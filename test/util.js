@@ -78,9 +78,9 @@ export const createRSAIssuer = () =>
 
 /**
  * @param {Uint8Array} bytes
- * @returns {API.Verifier & API.Agent}
+ * @returns {API.Authority}
  */
-export const Verifier = bytes => {
+export const decodeAuthority = bytes => {
   const [algorithm, length] = varint.decode(bytes)
   const key = bytes.subarray(length)
   /**
@@ -93,7 +93,6 @@ export const Verifier = bytes => {
 
   return {
     did: () => DID.format(bytes),
-    algorithm,
     verify,
   }
 }
@@ -102,7 +101,7 @@ export const Verifier = bytes => {
  *
  * @typedef {{
  * issuer: TSUCAN.EdKeypair
- * audience: UCAN.Agent
+ * audience: UCAN.Identity
  * proofs?: string[]
  * }} BuildOptions
  *
