@@ -5,8 +5,7 @@ import type {
 import type { MultibaseEncoder } from "multiformats/bases/interface"
 import type { code as RAW_CODE } from "multiformats/codecs/raw"
 import type { code as CBOR_CODE } from "@ipld/dag-cbor"
-import type { Signer, Verifier } from "./crypto.js"
-import * as Crypto from "./crypto.js"
+import type { Signer, Verifier, Signature } from "./crypto.js"
 
 export * from "./crypto.js"
 
@@ -47,12 +46,11 @@ export interface Body<C extends Capability = Capability> {
   proofs: Proof[]
 }
 export type JWT<C extends Capability = Capability> = ToString<
-  [Head, Payload<C>, Signature<C>],
-  `${ToString<Head>}.${ToString<Payload<C>>}.${ToString<Signature<C>>}`
+  [Head, Payload<C>, Signature<`${ToString<Head>}.${ToString<Payload<C>>}>`>],
+  `${ToString<Head>}.${ToString<Payload<C>>}.${ToString<
+    Signature<`${ToString<Head>}.${ToString<Payload<C>>}>`>
+  >}`
 >
-
-export type Signature<C extends Capability = Capability> =
-  Crypto.Signature<`${ToString<Head>}.${ToString<Payload<C>>}>`>
 
 interface Head {
   ucv: Version
