@@ -1,48 +1,60 @@
-export interface AsyncVerifier<A extends number> {
-  readonly algorithm: A
-  verify<S extends Signer<A>, T>(
-    payload: ByteView<T>,
-    signature: Signature<T, S>
-  ): PromiseLike<boolean>
-}
-
-export interface SyncVerifier<A extends number> {
-  readonly algorithm: A
-  verify<S extends Signer<A>, T>(
-    payload: ByteView<T>,
-    signature: Signature<T, S>
-  ): boolean
-}
-
+/**
+ * Represents an entity that can verify signature. Type paramater `A` represents
+ * a code from multiformat table describing cryptographic algorithm.
+ */
 export interface Verifier<A extends number = number> {
-  readonly algorithm: A
-  verify<S extends Signer<A>, T>(
-    payload: ByteView<T>,
-    signature: Signature<T, S>
-  ): Await<boolean>
-}
-
-export interface SyncSigner<A extends number = number> {
-  readonly algorithm: A
-  sign<T>(payload: ByteView<T>): Signature<T, this>
-}
-
-export interface AsyncSigner<A extends number = number> {
-  readonly algorithm: A
-  sign<T>(payload: ByteView<T>): PromiseLike<Signature<T, this>>
-}
-
-export interface Signer<A extends number = number> {
-  readonly algorithm: A
-  sign<T>(payload: ByteView<T>): Await<Signature<T, this>>
+  /**
+   * Takes byte encoded payload and verifies that it is signed by corresponding
+   * signer.
+   */
+  verify<T>(payload: ByteView<T>, signature: Signature<T, A>): Await<boolean>
 }
 
 /**
- * Represents `T` signed by `S`.
+ * Represents an entity that can sign a payload. Type parameter `A` represents
+ * a code from multiformat table describingy cryptographic algorithm.
  */
-export interface Signature<T = unknown, S extends Signer = Signer>
-  extends Phantom<T>,
-    Uint8Array {}
+export interface Signer<A extends number = number> {
+  /**
+   * Takes byte encoded payload and produces a verifiable signature.
+   */
+  sign<T>(payload: ByteView<T>): Await<Signature<T, A>>
+}
+
+/**
+ * Represents cryptographic signature. Type parameter `T` represents a structure
+ * which was byte encoded before it was signed. Type parameter `A` represents
+ * a code from multiformat table describingy cryptographic algorithm.
+ */
+export interface Signature<T = unknown, A extends number = number>
+  extends ByteView<T> {
+  algorithm?: A
+}
+
+/**
+ * Just like `Verifier` except definitely async.
+ */
+export interface AsyncVerifier<A extends number> {
+  verify<T>(
+    payload: ByteView<T>,
+    signature: Signature<T, A>
+  ): PromiseLike<boolean>
+}
+
+/**
+ * Just like Verifier` but definitely sync.
+ */
+export interface SyncVerifier<A extends number> {
+  verify<T>(payload: ByteView<T>, signature: Signature<T, A>): boolean
+}
+
+export interface SyncSigner<A extends number = number> {
+  sign<T>(payload: ByteView<T>): Signature<T, A>
+}
+
+export interface AsyncSigner<A extends number = number> {
+  sign<T>(payload: ByteView<T>): PromiseLike<Signature<T, A>>
+}
 
 /**
  * Represents byte encoded representation of the `Data`. It uses type parameter

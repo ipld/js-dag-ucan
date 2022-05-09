@@ -5,7 +5,7 @@ import type {
 import type { MultibaseEncoder } from "multiformats/bases/interface"
 import type { code as RAW_CODE } from "multiformats/codecs/raw"
 import type { code as CBOR_CODE } from "@ipld/dag-cbor"
-import type { Signer } from "./crypto.js"
+import type { Signer, Verifier } from "./crypto.js"
 import * as Crypto from "./crypto.js"
 
 export * from "./crypto.js"
@@ -14,12 +14,19 @@ export type { MultihashDigest, MultibaseEncoder, MultihashHasher }
 
 export type Fact = Record<string, unknown>
 
-export interface Agent {
+export interface Identity {
   did(): DID
 }
 
-export type Audience = Agent
-export interface Issuer<A extends number = number> extends Signer<A>, Agent {}
+export interface Audience extends Identity {}
+
+export interface Authority<A extends number = number>
+  extends Identity,
+    Verifier<A> {}
+
+export interface Issuer<A extends number = number>
+  extends Signer<A>,
+    Identity {}
 
 export type Version = `${number}.${number}.${number}`
 
@@ -101,7 +108,7 @@ export interface UCANOptions<
   A extends number = number
 > {
   issuer: Issuer<A>
-  audience: Agent
+  audience: Identity
   capabilities: C[]
   lifetimeInSeconds?: number
   expiration?: number
@@ -139,7 +146,7 @@ export interface Capability<
 }
 
 export type DID<T = unknown> = ToString<T, `did:${string}`>
-export interface DIDView extends ByteView<DID>, Agent {}
+export interface DIDView extends ByteView<DID>, Identity {}
 
 /**
  * Represents an IPLD link to a specific data of type `T`.
