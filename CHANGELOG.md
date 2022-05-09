@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0-beta](https://github.com/ipld/js-dag-ucan/compare/v1.3.0-beta...v1.4.0-beta) (2022-05-09)
+
+
+### Features
+
+* simplify crypto interfaces ([#30](https://github.com/ipld/js-dag-ucan/issues/30)) ([c5f1f91](https://github.com/ipld/js-dag-ucan/commit/c5f1f91ce78424ea63b28484cd65dff6967bd6a2))
+
 ## [1.3.0-beta](https://github.com/ipld/js-dag-ucan/compare/v1.2.4-beta...v1.3.0-beta) (2022-05-05)
 
 
