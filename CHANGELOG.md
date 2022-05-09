@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.3.0-beta](https://github.com/ipld/js-dag-ucan/compare/v1.2.4-beta...v1.3.0-beta) (2022-05-05)
+
+
+### Features
+
+* add validation functions ([#27](https://github.com/ipld/js-dag-ucan/issues/27)) ([499358f](https://github.com/ipld/js-dag-ucan/commit/499358ff566f1650fca905d5bd5065722adc76a9))
+
+
+### Bug Fixes
+
+* make verifySignature funciton usable from other things ([#29](https://github.com/ipld/js-dag-ucan/issues/29)) ([55c22cd](https://github.com/ipld/js-dag-ucan/commit/55c22cdad02a538a1e7192f7e570169f20b86486))
+
 ### [1.2.4-beta](https://github.com/ipld/js-dag-ucan/compare/v1.2.3-beta...v1.2.4-beta) (2022-05-03)
 
 
