@@ -10,61 +10,65 @@ import { algorithm, ED25519, RSA } from "./did.js"
  * @returns {UCAN.JWT<C>}
  */
 export const format = model =>
-  `${formatHeader(model)}.${formatBody(model)}.${formatSignature(
+  `${formatHeader(model)}.${formatPayload(model)}.${formatSignature(
     model.signature
   )}`
 
 /**
  * @template {UCAN.Capability} C
- * @param {UCAN.Input<C>} model
- * @returns {`${UCAN.Header}.${UCAN.Body}`}
+ * @param {UCAN.Data<C>} model
+ * @returns {UCAN.SignPayload<C>}
  */
-export const formatPayload = model =>
-  `${formatHeader(model)}.${formatBody(model)}`
+export const formatSignPayload = model =>
+  `${formatHeader(model)}.${formatPayload(model)}`
 
 /**
- * @param {UCAN.Input} model
- * @returns {`${UCAN.Header}`}
+ * @param {UCAN.Data} data
+ * @returns {UCAN.ToString<UCAN.ByteView<UCAN.Header>>}
  */
-export const formatHeader = model =>
-  base64urlpad.baseEncode(encodeHeader(model))
-
-/**
- * @param {UCAN.Input} model
- * @returns {`${UCAN.Body}`}
- */
-export const formatBody = model => base64urlpad.baseEncode(encodeBody(model))
+export const formatHeader = data => base64urlpad.baseEncode(encodeHeader(data))
 
 /**
  * @template {UCAN.Capability} C
- * @param {UCAN.Signature<C>} signature
+ * @param {UCAN.Data<C>} data
+ * @returns {UCAN.ToString<UCAN.ByteView<UCAN.Payload<C>>>}
+ */
+export const formatPayload = data =>
+  base64urlpad.baseEncode(encodePayload(data))
+
+/**
+ * @template {UCAN.Capability} C
+ * @param {UCAN.Signature<UCAN.SignPayload<C>>} signature
  * @returns {UCAN.ToString<UCAN.Signature<C>>}
  */
 export const formatSignature = signature => base64urlpad.baseEncode(signature)
 
 /**
- * @param {UCAN.Input} model
+ * @param {UCAN.Data} data
+ * @returns {UCAN.ByteView<UCAN.Header>}
  */
-export const encodeHeader = model =>
+export const encodeHeader = data =>
   json.encode({
-    alg: encodeAgorithm(model),
-    ucv: model.version,
+    alg: encodeAgorithm(data),
+    ucv: data.version,
     typ: "JWT",
   })
 
 /**
- * @param {UCAN.Input} body
+ * @template {UCAN.Capability} C
+ * @param {UCAN.Data<C>} data
+ * @returns {UCAN.ByteView<UCAN.Payload<C>>}
  */
-export const encodeBody = body =>
+export const encodePayload = data =>
   json.encode({
-    iss: DID.format(body.issuer),
-    aud: DID.format(body.audience),
-    att: body.capabilities,
-    exp: body.expiration,
-    prf: body.proofs.map(encodeProof),
-    ...(body.facts.length > 0 && { fct: body.facts }),
-    ...(body.nonce && { nnc: body.nonce }),
-    ...(body.notBefore && { nbf: body.notBefore }),
+    iss: DID.format(data.issuer),
+    aud: DID.format(data.audience),
+    att: data.capabilities,
+    exp: data.expiration,
+    prf: data.proofs.map(encodeProof),
+    ...(data.facts.length > 0 && { fct: data.facts }),
+    ...(data.nonce && { nnc: data.nonce }),
+    ...(data.notBefore && { nbf: data.notBefore }),
   })
 
 /**
@@ -74,16 +78,17 @@ export const encodeBody = body =>
 export const encodeProof = proof => proof.toString()
 
 /**
- * @param {UCAN.Input} model
+ * @param {object} data
+ * @param {UCAN.ByteView<UCAN.DID>} data.issuer
  */
-export const encodeAgorithm = model => {
-  switch (algorithm(model.issuer)) {
+export const encodeAgorithm = data => {
+  switch (algorithm(data.issuer)) {
     case ED25519:
       return "EdDSA"
     case RSA:
       return "RS256"
     /* c8 ignore next 2 */
     default:
-      throw new RangeError(`Unknown KeyType "${algorithm(model.issuer)}"`)
+      throw new RangeError(`Unknown KeyType "${algorithm(data.issuer)}"`)
   }
 }

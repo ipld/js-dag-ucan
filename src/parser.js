@@ -16,7 +16,7 @@ import * as raw from "multiformats/codecs/raw"
  */
 export const parse = input => {
   const segments = input.split(".")
-  const [header, body, signature] =
+  const [header, payload, signature] =
     segments.length === 3
       ? segments
       : ParseError.throw(
@@ -25,7 +25,7 @@ export const parse = input => {
 
   return {
     ...parseHeader(header),
-    ...parseBody(body),
+    ...parsePayload(payload),
     signature: base64urlpad.baseDecode(signature),
   }
 }
@@ -48,19 +48,19 @@ export const parseHeader = header => {
  * @template {UCAN.Capability} C
  * @param {string} input
  */
-export const parseBody = input => {
+export const parsePayload = input => {
   /** @type {UCAN.Payload<C>} */
-  const body = json.decode(base64urlpad.baseDecode(input))
+  const payload = json.decode(base64urlpad.baseDecode(input))
 
   return {
-    issuer: parseDID(body.iss, "iss"),
-    audience: parseDID(body.aud, "aud"),
-    expiration: parseInt(body.exp, "exp"),
-    nonce: parseOptionalString(body.nnc, "nnc"),
-    notBefore: parseOptionalInt(body.nbf, "nbf"),
-    facts: parseOptionalArray(body.fct, parseFact, "fct") || [],
-    proofs: parseProofs(body.prf, "prf"),
-    capabilities: /** @type {C[]} */ (parseCapabilities(body.att, "att")),
+    issuer: parseDID(payload.iss, "iss"),
+    audience: parseDID(payload.aud, "aud"),
+    expiration: parseInt(payload.exp, "exp"),
+    nonce: parseOptionalString(payload.nnc, "nnc"),
+    notBefore: parseOptionalInt(payload.nbf, "nbf"),
+    facts: parseOptionalArray(payload.fct, parseFact, "fct") || [],
+    proofs: parseProofs(payload.prf, "prf"),
+    capabilities: /** @type {C[]} */ (parseCapabilities(payload.att, "att")),
   }
 }
 
