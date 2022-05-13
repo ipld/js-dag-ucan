@@ -200,10 +200,16 @@ export type Resource = `${string}:${string}`
 export interface Capability<
   Can extends Ability = Ability,
   With extends Resource = Resource
-> {
+> extends Record<string, unknown> {
   with: With
   can: Can
 }
+
+/**
+ * Utility type for capturing capability constraints that is fields other than
+ * "can" and "with".
+ */
+export type Constraints<C extends Capability> = Omit<C, "can" | "with">
 
 /**
  * A string-endcoded decentralized identity document (DID).
