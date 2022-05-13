@@ -6,6 +6,7 @@ import type { MultibaseEncoder } from "multiformats/bases/interface"
 import type { code as RAW_CODE } from "multiformats/codecs/raw"
 import type { code as CBOR_CODE } from "@ipld/dag-cbor"
 import type { Signer, Verifier, Signature } from "./crypto.js"
+import type { Phantom, ByteView, ToString } from "./marker.js"
 
 export * from "./crypto.js"
 
@@ -46,25 +47,9 @@ export interface Issuer<A extends number = number>
 export type Version = `${number}.${number}.${number}`
 
 /**
- * Information contained in the UCAN header.
- */
-export interface Header {
-
-  /**
-   * The [multicodec code](https://github.com/multiformats/multicodec/blob/master/table.csv) 
-   * for a cryptographic signing algorithm used to sign this UCAN
-   */
-  algorithm: number
-
-  /** UCAN version */
-  version: Version
-}
-
-/**
  * Represents the body of a UCAN.
  */
 export interface Body<C extends Capability = Capability> {
-
   /** Identifies the intended recipient of the UCAN */
   audience: DID
 
@@ -98,14 +83,18 @@ export interface Body<C extends Capability = Capability> {
  * Represents a UCAN encoded as a JWT string.
  */
 export type JWT<C extends Capability = Capability> = ToString<
-  [Head, Payload<C>, Signature<`${ToString<Head>}.${ToString<Payload<C>>}>`>],
-  `${ToString<Head>}.${ToString<Payload<C>>}.${ToString<
-    Signature<`${ToString<Head>}.${ToString<Payload<C>>}>`>
+  [
+    Header,
+    Payload<C>,
+    Signature<`${ToString<Header>}.${ToString<Payload<C>>}>`>
+  ],
+  `${ToString<Header>}.${ToString<Payload<C>>}.${ToString<
+    Signature<`${ToString<Header>}.${ToString<Payload<C>>}>`>
   >}`
 >
 
 /** A UCAN {@link Header} in the format used by the JWT encoding. */
-interface Head {
+export interface Header {
   ucv: Version
   alg: "EdDSA" | "RS256"
   typ: "JWT"
@@ -193,7 +182,7 @@ export interface UCANOptions<
 
 /**
  * Represents a {@link Link} to a UCAN (in either IPLD or JWT format) that serves as
- * proof for the capabilities claimed in another UCAN. 
+ * proof for the capabilities claimed in another UCAN.
  */
 export type Proof<
   C extends Capability = Capability,
@@ -202,7 +191,7 @@ export type Proof<
 
 /**
  * Represents an IPLD block (including its CID) that can be decoded to data of type `T`.
- * 
+ *
  * @template T logical type of the data encoded in the block. This is distinct from the multicodec code of the block's {@link CID}, which is represented by `C`.
  * @template C - multicodec code corresponding to codec used to encode the block
  * @template A - multicodec code corresponding to the hashing algorithm used in creating CID
@@ -228,10 +217,10 @@ export type Resource = `${string}:${string}`
 
 /**
  * Represents an {@link Ability} that a UCAN holder `Can` perform `With` some {@link Resource}.
- * 
+ *
  * @template Can - the {@link Ability} (action/verb) the UCAN holder can perform
  * @template With - the {@link Resource} (thing/noun) the UCAN holder can perform their `Ability` on / with
- * 
+ *
  */
 export interface Capability<
   Can extends Ability = Ability,
@@ -253,7 +242,7 @@ export interface DIDView extends ByteView<DID>, Identity {}
 
 /**
  * Represents an IPLD link to a specific data of type `T`.
- * 
+ *
  * @template T logical type of the data being linked to. This is distinct from the multicodec code of the underlying {@link CID}, which is represented by `C`.
  * @template V - CID version
  * @template C - multicodec code corresponding to a codec linked data is encoded with
@@ -278,7 +267,7 @@ export interface Link<
  *
  * @see https://github.com/multiformats/js-multiformats/pull/161  which will likely
  * replace this definition once merged.
- * 
+ *
  * @template V - CID version
  * @template C - multicodec code corresponding to a codec content was encoded in
  * @template A - multicodec code corresponding to the hashing algorithm used to derive CID
@@ -295,53 +284,3 @@ export interface CID<
 
   toString<Prefix extends string>(encoder?: MultibaseEncoder<Prefix>): string
 }
-
-/**
- * A byte-encoded representation of some type of `Data`. 
- * 
- * A `ByteView` is essentially a `Uint8Array` that's been "tagged" with
- * a `Data` type parameter indicating the type of encoded data.
- * 
- * For example, a `ByteView<DID>` is a `Uint8Array` containing a binary
- * representation of a {@link DID}.
- */
-export interface ByteView<Data> extends Uint8Array, Phantom<Data> {}
-
-/**
- * Utility type that retains type information about data of type `In`, encoded
- * as type `Out`.
- * 
- * For concrete examples see {@link ToString} and {@link ToJSONString}.
- */
-export type Encoded<In, Out> = Out & Phantom<In>
-
-/**
- * Data of some type `In`, encoded as a string.
- */
-export type ToString<In, Out extends string = string> = Encoded<In, Out>
-
-/**
- * Data of some type `In`, encoded as a JSON string.
- */
-export type ToJSONString<In, Out extends string = string> = Encoded<In, Out>
-
-/**
- * A utility type to retain an unused type parameter `T`.
- * Similar to [phantom type parameters in Rust](https://doc.rust-lang.org/rust-by-example/generics/phantom.html).
- * 
- * Capturing unused type parameters allows us to define "nominal types," which
- * TypeScript does not natively support. Nominal types in turn allow us to capture
- * semantics not represented in the actual type structure, without requring us to define
- * new classes or pay additional runtime costs.
- * 
- * For a concrete example, see {@link ByteView}, which extends the `Uint8Array` type to capture
- * type information about the structure of the data encoded into the array.
- */
-export interface Phantom<T> {
-  // This field can not be represented because the field name is a non-existant
-  // unique symbol. But given that the field is optional, any object will validate
-  // the type contstraint.
-  [PhantomKey]?: T
-}
-
-declare const PhantomKey: unique symbol
