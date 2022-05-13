@@ -9,6 +9,7 @@ import type { Signer, Verifier, Signature } from "./crypto.js"
 import type { Phantom, ByteView, ToString } from "./marker.js"
 
 export * from "./crypto.js"
+export * from "./marker.js"
 
 export type { MultihashDigest, MultibaseEncoder, MultihashHasher }
 
@@ -46,62 +47,36 @@ export interface Issuer<A extends number = number>
 /** The version of the UCAN spec used to produce a specific UCAN. */
 export type Version = `${number}.${number}.${number}`
 
-/**
- * Represents the body of a UCAN.
- */
-export interface Body<C extends Capability = Capability> {
-  /** Identifies the intended recipient of the UCAN */
-  audience: DID
-
-  /** Identifies the creator and signer of the UCAN */
-  issuer: DID
-
-  /** The {@link Capability} set that this UCAN allows. */
-  capabilities: C[]
-
-  /**
-   * UNIX epoch timestamp of the UCAN's expiration date.
-   */
-  expiration: number
-
-  /** Optional UNIX epoch timestamp that sets the start of the UCAN's validity period. If not set, anything before {@link expiration} is considered valid. */
-  notBefore?: number
-
-  /** Optional nonce to include, e.g. for replay attack prevention. */
-  nonce?: string
-
-  /**
-   * Set of {@link Fact}s to include in the UCAN body.
-   */
-  facts: Fact[]
-
-  /** Chain of {@link Proof}s that can be used to validate the claims and scope of this UCAN. */
-  proofs: Proof[]
-}
+export type SignPayload<C extends Capability> = ToString<
+  ByteView<[Headers, Payload<C>]>,
+  `${ToString<Header>}.${ToString<Payload<C>>}`
+>
 
 /**
  * Represents a UCAN encoded as a JWT string.
  */
 export type JWT<C extends Capability = Capability> = ToString<
-  [
-    Header,
-    Payload<C>,
-    Signature<`${ToString<Header>}.${ToString<Payload<C>>}>`>
-  ],
+  [Header, Payload<C>, Signature<SignPayload<C>>],
   `${ToString<Header>}.${ToString<Payload<C>>}.${ToString<
-    Signature<`${ToString<Header>}.${ToString<Payload<C>>}>`>
+    Signature<SignPayload<C>>
   >}`
 >
 
-/** A UCAN {@link Header} in the format used by the JWT encoding. */
+/**
+ * A UCAN header, in the format used by the JWT encoding.
+ * @see https://github.com/ucan-wg/spec/#31-header
+ */
 export interface Header {
   ucv: Version
   alg: "EdDSA" | "RS256"
   typ: "JWT"
 }
 
-/** A UCAN {@link Body}, in the format used by the JWT encoding. */
-export interface Payload<C extends Capability> {
+/**
+ * A UCAN payload, in the format used by the JWT encoding.
+ * @see https://github.com/ucan-wg/spec/#32-payload
+ */
+export interface Payload<C extends Capability = Capability> {
   iss: DID
   aud: DID
   exp: number
@@ -120,7 +95,7 @@ export type UCAN<C extends Capability = Capability> = Model<C> | RAW<C>
 /**
  * IPLD representation of an unsigned UCAN.
  */
-export interface Input<C extends Capability = Capability> {
+export interface Data<C extends Capability = Capability> {
   version: Version
   issuer: ByteView<DID>
   audience: ByteView<DID>
@@ -135,8 +110,8 @@ export interface Input<C extends Capability = Capability> {
 /**
  * IPLD representation of a signed UCAN.
  */
-export interface Model<C extends Capability = Capability> extends Input<C> {
-  signature: Signature<C>
+export interface Model<C extends Capability = Capability> extends Data<C> {
+  signature: Signature<SignPayload<C>>
 }
 
 /**

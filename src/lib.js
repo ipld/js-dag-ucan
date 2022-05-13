@@ -159,8 +159,8 @@ export const issue = async ({
     signature: EMPTY,
   })
 
-  const payload = UTF8.encode(Formatter.formatPayload(data))
-  /** @type {UCAN.Signature<C>} */
+  const payload = UTF8.encode(Formatter.formatSignPayload(data))
+
   const signature = await issuer.sign(payload)
 
   return View.cbor({ ...data, signature })
@@ -175,7 +175,10 @@ export const issue = async ({
  */
 export const verifySignature = (ucan, authority) =>
   formatDID(ucan.issuer) === authority.did() &&
-  authority.verify(UTF8.encode(Formatter.formatPayload(ucan)), ucan.signature)
+  authority.verify(
+    UTF8.encode(Formatter.formatSignPayload(ucan)),
+    ucan.signature
+  )
 
 /**
  * Check if a UCAN is expired.
