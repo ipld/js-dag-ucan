@@ -327,6 +327,7 @@ export type ToJSONString<In, Out extends string = string> = Encoded<In, Out>
 
 /**
  * A utility type to retain an unused type parameter `T`.
+ * Similar to [phantom type parameters in Rust](https://doc.rust-lang.org/rust-by-example/generics/phantom.html).
  * 
  * Capturing unused type parameters allows us to define "nominal types," which
  * TypeScript does not natively support. Nominal types in turn allow us to capture
