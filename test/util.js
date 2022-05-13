@@ -1,7 +1,7 @@
 import * as UCAN from "../src/lib.js"
 import * as TSUCAN from "./ts-ucan.cjs"
 import { assert } from "chai"
-import { base64urlpad } from "multiformats/bases/base64"
+import { base64url } from "multiformats/bases/base64"
 import { varint } from "multiformats"
 import * as json from "@ipld/dag-json"
 import * as UTF8 from "../src/utf8.js"
@@ -145,7 +145,7 @@ export const buildJWT = async options => TSUCAN.encode(await buildUCAN(options))
  * @param {{header?:object, body:object}} token
  */
 export const formatUnsafe = async (issuer, token) => {
-  const header = base64urlpad.baseEncode(
+  const header = base64url.baseEncode(
     json.encode({
       typ: "JWT",
       alg: "EdDSA",
@@ -153,7 +153,7 @@ export const formatUnsafe = async (issuer, token) => {
       ...token.header,
     })
   )
-  const body = base64urlpad.baseEncode(
+  const body = base64url.baseEncode(
     json.encode({
       iss: issuer.did(),
       aud: issuer.did(),
@@ -165,5 +165,5 @@ export const formatUnsafe = async (issuer, token) => {
     })
   )
   const signature = await issuer.sign(UTF8.encode(`${header}.${body}`))
-  return `${header}.${body}.${base64urlpad.baseEncode(signature)}`
+  return `${header}.${body}.${base64url.baseEncode(signature)}`
 }

@@ -1,7 +1,7 @@
 import * as UCAN from "./ucan.js"
 import * as DID from "./did.js"
 import * as json from "@ipld/dag-json"
-import { base64urlpad } from "multiformats/bases/base64"
+import { base64url } from "multiformats/bases/base64"
 import { algorithm, ED25519, RSA } from "./did.js"
 
 /**
@@ -26,22 +26,21 @@ export const formatSignPayload = model =>
  * @param {UCAN.Data} data
  * @returns {UCAN.ToString<UCAN.ByteView<UCAN.Header>>}
  */
-export const formatHeader = data => base64urlpad.baseEncode(encodeHeader(data))
+export const formatHeader = data => base64url.baseEncode(encodeHeader(data))
 
 /**
  * @template {UCAN.Capability} C
  * @param {UCAN.Data<C>} data
  * @returns {UCAN.ToString<UCAN.ByteView<UCAN.Payload<C>>>}
  */
-export const formatPayload = data =>
-  base64urlpad.baseEncode(encodePayload(data))
+export const formatPayload = data => base64url.baseEncode(encodePayload(data))
 
 /**
  * @template {UCAN.Capability} C
  * @param {UCAN.Signature<UCAN.SignPayload<C>>} signature
  * @returns {UCAN.ToString<UCAN.Signature<C>>}
  */
-export const formatSignature = signature => base64urlpad.baseEncode(signature)
+export const formatSignature = signature => base64url.baseEncode(signature)
 
 /**
  * @param {UCAN.Data} data

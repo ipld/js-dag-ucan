@@ -1,6 +1,6 @@
 import * as UCAN from "./ucan.js"
 import * as UTF8 from "./utf8.js"
-import { base64urlpad } from "multiformats/bases/base64"
+import { base64url } from "multiformats/bases/base64"
 import * as json from "@ipld/dag-json"
 import { CID } from "multiformats"
 import { identity } from "multiformats/hashes/identity"
@@ -26,7 +26,7 @@ export const parse = input => {
   return {
     ...parseHeader(header),
     ...parsePayload(payload),
-    signature: base64urlpad.baseDecode(signature),
+    signature: base64url.baseDecode(signature),
   }
 }
 
@@ -34,7 +34,7 @@ export const parse = input => {
  * @param {string} header
  */
 export const parseHeader = header => {
-  const { ucv, alg, typ } = json.decode(base64urlpad.baseDecode(header))
+  const { ucv, alg, typ } = json.decode(base64url.baseDecode(header))
 
   const _type = parseJWT(typ)
   const _algorithm = parseAlgorithm(alg)
@@ -50,7 +50,7 @@ export const parseHeader = header => {
  */
 export const parsePayload = input => {
   /** @type {UCAN.Payload<C>} */
-  const payload = json.decode(base64urlpad.baseDecode(input))
+  const payload = json.decode(base64url.baseDecode(input))
 
   return {
     issuer: parseDID(payload.iss, "iss"),
