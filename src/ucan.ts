@@ -11,7 +11,11 @@ export * from "./crypto.js"
 
 export type { MultihashDigest, MultibaseEncoder, MultihashHasher }
 
-/** Arbitrary (service / capability specific) information included in a UCAN {@link Body} */
+/**
+ * Verifiable facts and proofs of knowledge included in a UCAN {@link Body} in order to
+ * support claimed capabilities.
+ * @see https://github.com/ucan-wg/spec/#324-facts
+ */
 export type Fact = Record<string, unknown>
 
 /**
@@ -33,7 +37,7 @@ export interface Authority<A extends number = number>
   extends Identity,
     Verifier<A> {}
 
-/** The {@link Identity} that created and signed a given UCAN. */
+/** The {@link Identity} that can issue / delegate UCAN by signing */
 export interface Issuer<A extends number = number>
   extends Signer<A>,
     Identity {}
@@ -200,8 +204,8 @@ export type Proof<
  * Represents an IPLD block (including its CID) that can be decoded to data of type `T`.
  * 
  * @template T logical type of the data encoded in the block. This is distinct from the multicodec code of the block's {@link CID}, which is represented by `C`.
- * @template C - multicodec code for the content encoded in the block
- * @template A - multicodec code for the hash algorithm used to create CID
+ * @template C - multicodec code corresponding to codec used to encode the block
+ * @template A - multicodec code corresponding to the hashing algorithm used in creating CID
  */
 export interface Block<
   T extends unknown = unknown,
@@ -218,7 +222,7 @@ export interface Block<
 export type Ability = `${string}/${string}` | "*"
 
 /**
- * A string that represents something a UCAN holder can act upon.
+ * A string that represents resource a UCAN holder can act upon.
  */
 export type Resource = `${string}:${string}`
 
@@ -252,8 +256,8 @@ export interface DIDView extends ByteView<DID>, Identity {}
  * 
  * @template T logical type of the data being linked to. This is distinct from the multicodec code of the underlying {@link CID}, which is represented by `C`.
  * @template V - CID version
- * @template C - multicodec code for the content being linked
- * @template A - multicodec code for the hash algorithm used to create CID
+ * @template C - multicodec code corresponding to a codec linked data is encoded with
+ * @template A - multicodec code corresponding to the hashing algorithm of the CID
  */
 
 export interface Link<
@@ -266,7 +270,7 @@ export interface Link<
 
 /**
  * Logical representation of *C*ontent *Id*entifier with optional type parameters
- * to capture the CID version, hash algorithm, and "content type" (multicodec) of the
+ * to capture the CID version, hash algorithm, and content encoding (multicodec) of the
  * identified content.
  *
  * Note: This is not an actual definition from js-multiformats because that one
@@ -276,8 +280,8 @@ export interface Link<
  * replace this definition once merged.
  * 
  * @template V - CID version
- * @template C - multicodec code for the content being identified
- * @template A - multicodec code for the hash algorithm used to create CID
+ * @template C - multicodec code corresponding to a codec content was encoded in
+ * @template A - multicodec code corresponding to the hashing algorithm used to derive CID
  */
 export interface CID<
   V extends 0 | 1 = 0 | 1,
