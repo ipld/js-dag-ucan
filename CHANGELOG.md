@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.5.0-beta](https://github.com/ipld/js-dag-ucan/compare/v1.4.1-beta...v1.5.0-beta) (2022-05-13)
+
+
+### Features
+
+* extend capability type ([#37](https://github.com/ipld/js-dag-ucan/issues/37)) ([4d811c7](https://github.com/ipld/js-dag-ucan/commit/4d811c751cf239105b375e42f1a1bda4656e7e33))
+
+
+### Bug Fixes
+
+* use base64url encoding ([#39](https://github.com/ipld/js-dag-ucan/issues/39)) ([e77b889](https://github.com/ipld/js-dag-ucan/commit/e77b8896d1a9472a84e967486b22a9dd48a6bac8))
+
 ### [1.4.1-beta](https://github.com/ipld/js-dag-ucan/compare/v1.4.0-beta...v1.4.1-beta) (2022-05-09)
 
 
