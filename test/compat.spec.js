@@ -5,7 +5,7 @@ import { assert } from "chai"
 import { assertUCAN } from "./util.js"
 import * as DID from "../src/did.js"
 
-new Set([""])
+const skip = new Set(``.split('\n'))
 describe("0.8.1", () => {
   for (const {
     comment,
