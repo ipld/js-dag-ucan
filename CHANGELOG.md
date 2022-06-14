@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0-beta](https://github.com/ipld/js-dag-ucan/compare/v1.5.0-beta...v1.6.0-beta) (2022-06-14)
+
+
+### Features
+
+* loosen capability type ([#45](https://github.com/ipld/js-dag-ucan/issues/45)) ([76a9eee](https://github.com/ipld/js-dag-ucan/commit/76a9eeeee4d1a2d34bf8d7cf75e468aa630508eb))
+
 ## [1.5.0-beta](https://github.com/ipld/js-dag-ucan/compare/v1.4.1-beta...v1.5.0-beta) (2022-05-13)
 
 
