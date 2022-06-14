@@ -121,6 +121,27 @@ const ucan = await UCAN.issue({
 })
 ```
 
+### Embedding Proofs
+
+While not recommended, it is possible to inline proofs inside a single UCAN using CIDs with identity
+multihash:
+
+```ts
+import { identity } from "multiformats/hashes/identity"
+const proof = await UCAN.issue({
+  issuer: alice,
+  audience: bob,
+  capabilities: [{ can: "store/add", with: alice.did() }],
+})
+
+const delegation = await UCAN.issue({
+  issuer: bob,
+  audience: mallory,
+  capabilities: proof.capabilities,
+  proofs: [await UCAN.link(proof, {hasher: identity})]
+})
+```
+
 [ipld]: https://ipld.io/
 [ucan]: https://github.com/ucan-wg/spec/
 [ipld schema]: https://ipld.io/docs/schemas/using/authoring-guide/
