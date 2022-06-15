@@ -50,6 +50,10 @@
       "types": "./dist/src/lib.d.ts",
       "import": "./src/lib.js"
     },
+    "./did": {
+      "types": "./dist/src/did.d.ts",
+      "import": "./src/did.js"
+    },
     "./src/lib.js": {
       "types": "./dist/src/lib.d.ts",
       "import": "./src/lib.js"

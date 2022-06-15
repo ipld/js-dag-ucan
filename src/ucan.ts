@@ -162,7 +162,7 @@ export interface UCANOptions<
 export type Proof<
   C extends Capability = Capability,
   A extends number = number
-> = Link<Model<C>, 1, typeof CBOR_CODE, A> | Link<JWT<C>, 1, typeof RAW_CODE, A>
+> = Link<Model<C>, typeof CBOR_CODE, A> | Link<JWT<C>, typeof RAW_CODE, A>
 
 /**
  * Represents an IPLD block (including its CID) that can be decoded to data of type `T`.
@@ -174,10 +174,11 @@ export type Proof<
 export interface Block<
   T extends unknown = unknown,
   C extends number = number,
-  A extends number = number
+  A extends number = number,
+  V extends CIDVersion = 1
 > {
   bytes: ByteView<T>
-  cid: Link<T, 1, C, A>
+  cid: Link<T, C, A, V>
 }
 
 /**
@@ -221,6 +222,8 @@ export type DID<T = unknown> = ToString<T, `did:${string}`>
  */
 export interface DIDView extends ByteView<DID>, Identity {}
 
+export type CIDVersion = 0 | 1
+
 /**
  * Represents an IPLD link to a specific data of type `T`.
  *
@@ -232,10 +235,10 @@ export interface DIDView extends ByteView<DID>, Identity {}
 
 export interface Link<
   T extends unknown = unknown,
-  V extends 0 | 1 = 0 | 1,
   C extends number = number,
-  A extends number = number
-> extends CID<V, C, A>,
+  A extends number = number,
+  V extends CIDVersion = 1
+> extends CID<C, A, V>,
     Phantom<T> {}
 
 /**
@@ -249,19 +252,21 @@ export interface Link<
  * @see https://github.com/multiformats/js-multiformats/pull/161  which will likely
  * replace this definition once merged.
  *
- * @template V - CID version
  * @template C - multicodec code corresponding to a codec content was encoded in
  * @template A - multicodec code corresponding to the hashing algorithm used to derive CID
+ * @template V - CID version
  */
 export interface CID<
-  V extends 0 | 1 = 0 | 1,
   C extends number = number,
-  A extends number = number
+  A extends number = number,
+  V extends CIDVersion = CIDVersion
 > {
   readonly version: V
   readonly code: C
   readonly multihash: MultihashDigest<A>
   readonly bytes: Uint8Array
+
+  // readonly asCID: this
 
   toString<Prefix extends string>(encoder?: MultibaseEncoder<Prefix>): string
 }
