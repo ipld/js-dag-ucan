@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0-beta](https://github.com/ipld/js-dag-ucan/compare/v1.6.0-beta...v1.7.0-beta) (2022-06-15)
+
+
+### Features
+
+* align CID/Link API with multiformats PR ([#47](https://github.com/ipld/js-dag-ucan/issues/47)) ([4c4a16d](https://github.com/ipld/js-dag-ucan/commit/4c4a16d8dc1da760eb0b9334733f9f39c3b4a0ca))
+
 ## [1.6.0-beta](https://github.com/ipld/js-dag-ucan/compare/v1.5.0-beta...v1.6.0-beta) (2022-06-14)
 
 
