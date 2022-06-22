@@ -6,12 +6,14 @@ on:
       - main
     paths:
       - "src/**"
+      - "test/**"
   pull_request:
     branches:
       - main
     paths:
       - "src**"
       - ".github/workflows/ci.yml"
+      - "test/**"
   workflow_dispatch:
 
 jobs:

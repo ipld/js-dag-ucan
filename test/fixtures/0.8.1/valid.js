@@ -216,7 +216,7 @@ export default [
         exp: 4804143412,
         att: [
           {
-            with: "prf/0",
+            with: "prf:0",
             can: "ucan/DELEGATE",
           },
         ],
