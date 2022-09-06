@@ -64,7 +64,7 @@ class View {
   }
 
   /**
-   * @returns {UCAN.Proof[]}
+   * @returns {UCAN.UCANCid[]}
    */
 
   get proofs() {
@@ -145,7 +145,7 @@ class JWTView extends Uint8Array {
   }
 
   /**
-   * @returns {UCAN.Proof[]}
+   * @returns {UCAN.UCANCid[]}
    */
 
   get proofs() {

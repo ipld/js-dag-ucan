@@ -77,7 +77,7 @@ export const write = async (data, options) => {
       ? [RAW.code, RAW.encode(data)]
       : [CBOR.code, CBOR.encode(data)]
 
-  const cid = /** @type {CID & UCAN.Proof<C, A>} */ (
+  const cid = /** @type {UCAN.UCANCid<C, A>} */ (
     CID.createV1(code, await hasher.digest(bytes))
   )
   return { cid, bytes, data }

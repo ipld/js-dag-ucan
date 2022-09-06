@@ -7,19 +7,12 @@ import type { code as RAW_CODE } from "multiformats/codecs/raw"
 import type { code as CBOR_CODE } from "@ipld/dag-cbor"
 import type { Signer, Verifier, Signature } from "./crypto.js"
 import type { Phantom, ByteView, ToString } from "./marker.js"
-import type {CID as CanonicalCID} from "multiformats/cid"
+import type { CID as MultiformatsCID } from "multiformats/cid"
 
 export * from "./crypto.js"
 export * from "./marker.js"
 
 export type { MultihashDigest, MultibaseEncoder, MultihashHasher }
-
-/**
- * Verifiable facts and proofs of knowledge included in a UCAN {@link Body} in order to
- * support claimed capabilities.
- * @see https://github.com/ucan-wg/spec/#324-facts
- */
-export type Fact = Record<string, unknown>
 
 /**
  * A string-encoded decentralized identity document (DID).
@@ -29,9 +22,15 @@ export type DIDString = `did:${string}`
 /**
  * DID object representation with a `did` accessor for the {@link DIDString}.
  */
-export interface Identity {
+export interface DID {
   did(): DIDString
 }
+
+/**
+ * Same as {@link DID} as compatibility layer
+ * @deprecated
+ */
+export type Identity = DID
 
 /**
  * A byte-encoded {@link DIDString} that provides a `did` accessor method (see {@link Identity}).
@@ -45,20 +44,22 @@ export interface DIDVerifier<A extends number = number>
   extends Verifier<A>, Identity {}
 
 /** 
- * The {@link Identity} that can issue / delegate UCAN by signing 
+ * The {@link Identity} that can issue (sign) UCANs using the signing algorithm A 
  */
 export interface Issuer<A extends number = number>
   extends Signer<A>, Identity {}
+
+/**
+ * Verifiable facts and proofs of knowledge included in a UCAN {@link Payload} in order to
+ * support claimed capabilities.
+ * @see https://github.com/ucan-wg/spec/#324-facts
+ */
+export type Fact = Record<string, unknown>
 
 /** 
  * The version of the UCAN spec used to produce a specific UCAN. 
  */
 export type Version = `${number}.${number}.${number}`
-
-/**
- * Represents a UCAN encoded as a JWT string.
- */
-export type JWT<C extends Capability = Capability> = string & Phantom<C>
 
 /**
  * A UCAN header, in the format used by the JWT encoding.
@@ -82,8 +83,13 @@ export interface Payload<C extends Capability = Capability> {
   nnc?: string
   nbf?: number
   fct?: Fact[]
-  prf?: ToString<Proof<C>>
+  prf?: ToString<UCANCid>
 }
+
+/**
+ * Represents a UCAN encoded as a JWT string.
+ */
+export type JWT<C extends Capability = Capability> = string & Phantom<C>
 
 /**
  * A signed UCAN in either IPLD or JWT format.
@@ -102,7 +108,7 @@ export interface Data<C extends Capability = Capability> {
   notBefore?: number
   nonce?: string
   facts: Fact[]
-  proofs: Proof[]
+  proofs: UCANCid[]
 }
 
 /**
@@ -136,6 +142,9 @@ export interface View<C extends Capability = Capability> extends Model<C> {
 
 /**
  * Options used when issuing a new UCAN.
+ * 
+ * @template C - {@link Capability}
+ * @template A - Signing algorithm
  */
 export interface UCANOptions<
   C extends Capability = Capability,
@@ -151,31 +160,31 @@ export interface UCANOptions<
   nonce?: string
 
   facts?: Fact[]
-  proofs?: Array<Proof>
+  proofs?: UCANCid[]
 }
 
 /**
- * Represents a {@link Link} to a UCAN (in either IPLD or JWT format) that serves as
- * proof for the capabilities claimed in another UCAN.
+ * Represents a UCAN {@link CID} in either IPLD or JWT format
  */
-export type Proof<
+export type UCANCid<
   C extends Capability = Capability,
   A extends number = number
-> = Link<Model<C>, typeof CBOR_CODE, A> | Link<JWT<C>, typeof RAW_CODE, A>
-
+> = (CID<typeof CBOR_CODE, A, 1> | CID<typeof RAW_CODE, A, 1>) & Phantom<C>
 
 /**
  * Represents a UCAN IPLD block
  * 
+ * Note: once we change the Capability generic to an array we can merge this with ucanto transport block
+ * 
  * @template C - {@link Capability} 
- * @template A - Multicodec code corresponding to the hashing algorithm of the CID {@link Proof}
+ * @template A - Multicodec code corresponding to the hashing algorithm of the {@link UCANCid}
  */
 export interface UCANBlock<
   C extends Capability,
   A extends number
 > {
   bytes: ByteView<UCAN<C>>
-  cid: Proof<C,A> & CanonicalCID
+  cid: UCANCid<C,A>
   data?: UCAN<C>
 }
 
@@ -213,29 +222,14 @@ export type Constraints<C extends Capability> = Omit<C, "can" | "with">
 export type CIDVersion = 0 | 1
 
 /**
- * Represents an IPLD link to a specific data of type `T`.
- *
- * @template T logical type of the data being linked to. This is distinct from the multicodec code of the underlying {@link CID}, which is represented by `C`.
- * @template V - CID version
- * @template C - multicodec code corresponding to a codec linked data is encoded with
- * @template A - multicodec code corresponding to the hashing algorithm of the CID
- */
-
-export interface Link<
-  T extends unknown = unknown,
-  C extends number = number,
-  A extends number = number,
-  V extends CIDVersion = 1
-> extends CID<C, A, V>,
-    Phantom<T> {}
-
-/**
  * Logical representation of *C*ontent *Id*entifier with optional type parameters
  * to capture the CID version, hash algorithm, and content encoding (multicodec) of the
  * identified content.
  *
  * Note: This is not an actual definition from js-multiformats because that one
  * refers to a specific class and therefore is problematic.
+ * 
+ * It extends Multiformats CID to avoid type issues
  *
  * @see https://github.com/multiformats/js-multiformats/pull/161  which will likely
  * replace this definition once merged.
@@ -247,8 +241,8 @@ export interface Link<
 export interface CID<
   C extends number = number,
   A extends number = number,
-  V extends CIDVersion = CIDVersion
-> {
+  V extends CIDVersion = 1
+> extends MultiformatsCID {
   readonly version: V
   readonly code: C
   readonly multihash: MultihashDigest<A>

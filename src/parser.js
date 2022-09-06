@@ -218,7 +218,6 @@ const parseProofs = (input, context) =>
 /**
  * @param {unknown} input
  * @param {string} context
- * @returns {UCAN.Proof}
  */
 const parseProof = (input, context) => {
   const proof =
@@ -230,9 +229,9 @@ const parseProof = (input, context) => {
           )}, must be a string`
         )
   try {
-    return /** @type {UCAN.Proof} */ (CID.parse(proof))
+    return /** @type {UCAN.UCANCid} */ (CID.parse(proof))
   } catch (error) {
-    return /** @type {UCAN.Proof} */ (
+    return /** @type {UCAN.UCANCid} */ (
       CID.create(1, raw.code, identity.digest(UTF8.encode(proof)))
     )
   }
