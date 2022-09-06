@@ -5,6 +5,9 @@ import { varint } from "multiformats"
 const DID_KEY_PREFIX = `did:key:`
 export const ED25519 = 0xed
 export const RSA = 0x1205
+/**
+ * @typedef {typeof ED25519|typeof RSA} Code
+ */
 
 /**
  * @param {Uint8Array} key
@@ -23,12 +26,9 @@ export const algorithm = key => {
   }
 }
 
-/**
- * @typedef {typeof ED25519|typeof RSA} Code
- */
 
 /**
- * @param {UCAN.DID} did
+ * @param {UCAN.DIDString} did
  * @returns {UCAN.DIDView}
  */
 export const parse = did => {
@@ -39,11 +39,11 @@ export const parse = did => {
 }
 
 /**
- * @param {UCAN.ByteView<UCAN.DID>} key
- * @returns {UCAN.DID}
+ * @param {UCAN.DIDView | Uint8Array} key
+ * @returns {UCAN.DIDString}
  */
-export const format = key =>
-  /** @type {UCAN.DID} */ (`${DID_KEY_PREFIX}${base58btc.encode(encode(key))}`)
+export const format = (key) =>
+  `${DID_KEY_PREFIX}${base58btc.encode(encode(key))}`
 
 /**
  * @param {Uint8Array} bytes
@@ -56,7 +56,7 @@ export const decode = bytes => {
 
 /**
  * @param {Uint8Array} bytes
- * @returns {UCAN.ByteView<UCAN.DID>}
+ * @returns {UCAN.ByteView<UCAN.DIDString>}
  */
 export const encode = bytes => {
   const _ = algorithm(bytes)
@@ -64,7 +64,7 @@ export const encode = bytes => {
 }
 
 /**
- * @param {UCAN.ByteView<UCAN.DID>|UCAN.DID} input
+ * @param {UCAN.ByteView<UCAN.DIDString>|UCAN.DIDString} input
  * @returns {UCAN.DIDView}
  */
 export const from = input => {
@@ -77,7 +77,15 @@ export const from = input => {
   }
 }
 
+/**
+ * @implements {UCAN.DIDView}
+ * @extends {Uint8Array}
+ */
 class DID extends Uint8Array {
+  /**
+   *
+   * @returns {import('./ucan.js').DIDString}
+   */
   did() {
     return format(this)
   }

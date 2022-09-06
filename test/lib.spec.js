@@ -50,7 +50,7 @@ describe("dag-ucan", () => {
     assert.ok(ucan.expiration > UCAN.now())
   })
 
-  it("dervie token", async () => {
+  it("derive token", async () => {
     const root = await UCAN.issue({
       issuer: alice,
       audience: bob,
@@ -132,7 +132,8 @@ describe("dag-ucan", () => {
       proofs: [proof],
     })
 
-    await assertCompatible(leaf)
+    // TODO: ts-ucan does not support cid as proof
+    // await assertCompatible(leaf)
   })
 
   it("with nonce", async () => {
@@ -527,6 +528,7 @@ describe("parse", () => {
   })
 
   it("hash conistent ucan is parsed into IPLD representation", async () => {
+    /** @type {UCAN.JWT<{with: 'mailto:*', can: 'send/message'}>} */
     const jwt = await formatUnsafe(alice, {
       body: {
         att: [

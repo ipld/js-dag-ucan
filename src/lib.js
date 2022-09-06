@@ -65,15 +65,13 @@ export const link = async (ucan, options) => {
 
 /**
  * @template {UCAN.Capability} C
- * @template {number} [A=number]
+ * @template {number} [A=number] - Multihash code
  * @param {UCAN.UCAN<C>} data
  * @param {{hasher?: UCAN.MultihashHasher<A>}} [options]
- * @returns {Promise<{cid:UCAN.Proof<C> & CID, bytes: UCAN.ByteView<UCAN.UCAN<C>>, data: UCAN.UCAN<C> }>}
+ * @returns {Promise<UCAN.UCANBlock<C,A>>}
  */
-export const write = async (
-  data,
-  { hasher = /** @type {UCAN.MultihashHasher<any> } */ (sha256) } = {}
-) => {
+export const write = async (data, options) => {
+  const hasher = options?.hasher || sha256
   const [code, bytes] =
     data instanceof Uint8Array
       ? [RAW.code, RAW.encode(data)]
@@ -100,7 +98,6 @@ export const write = async (
  * @template {UCAN.Capability} C
  * @param {UCAN.JWT<C>} jwt
  * @returns {UCAN.View<C>}
-
  */
 export const parse = jwt => {
   const model = Parser.parse(jwt)
@@ -171,11 +168,11 @@ export const issue = async ({
  *
  * @template {UCAN.Capability} C
  * @param {UCAN.Model<C>} ucan
- * @param {UCAN.Authority} authority
+ * @param {UCAN.DIDVerifier} didVerifier
  */
-export const verifySignature = (ucan, authority) =>
-  formatDID(ucan.issuer) === authority.did() &&
-  authority.verify(
+export const verifySignature = (ucan, didVerifier) =>
+  formatDID(ucan.issuer) === didVerifier.did() &&
+  didVerifier.verify(
     UTF8.encode(Formatter.formatSignPayload(ucan)),
     ucan.signature
   )

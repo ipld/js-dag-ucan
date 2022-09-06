@@ -7,6 +7,7 @@ import type { code as RAW_CODE } from "multiformats/codecs/raw"
 import type { code as CBOR_CODE } from "@ipld/dag-cbor"
 import type { Signer, Verifier, Signature } from "./crypto.js"
 import type { Phantom, ByteView, ToString } from "./marker.js"
+import type {CID as CanonicalCID} from "multiformats/cid"
 
 export * from "./crypto.js"
 export * from "./marker.js"
@@ -21,46 +22,43 @@ export type { MultihashDigest, MultibaseEncoder, MultihashHasher }
 export type Fact = Record<string, unknown>
 
 /**
- * A participant in the UCAN system that can be identified by {@link DID}.
+ * A string-encoded decentralized identity document (DID).
+ */
+export type DIDString = `did:${string}`
+
+/**
+ * DID object representation with a `did` accessor for the {@link DIDString}.
  */
 export interface Identity {
-  did(): DID
+  did(): DIDString
 }
 
 /**
- * The intended recipient of a given UCAN.
+ * A byte-encoded {@link DIDString} that provides a `did` accessor method (see {@link Identity}).
  */
-export interface Audience extends Identity {}
+export interface DIDView extends ByteView<DIDString>, Identity{}
 
 /**
  * An {@link Identity} that can verify signatures produced with the algorithm `A` (see {@link Verifier}).
  */
-export interface Authority<A extends number = number>
-  extends Identity,
-    Verifier<A> {}
+export interface DIDVerifier<A extends number = number>
+  extends Verifier<A>, Identity {}
 
-/** The {@link Identity} that can issue / delegate UCAN by signing */
+/** 
+ * The {@link Identity} that can issue / delegate UCAN by signing 
+ */
 export interface Issuer<A extends number = number>
-  extends Signer<A>,
-    Identity {}
+  extends Signer<A>, Identity {}
 
-/** The version of the UCAN spec used to produce a specific UCAN. */
+/** 
+ * The version of the UCAN spec used to produce a specific UCAN. 
+ */
 export type Version = `${number}.${number}.${number}`
-
-export type SignPayload<C extends Capability> = ToString<
-  ByteView<[Headers, Payload<C>]>,
-  `${ToString<Header>}.${ToString<Payload<C>>}`
->
 
 /**
  * Represents a UCAN encoded as a JWT string.
  */
-export type JWT<C extends Capability = Capability> = ToString<
-  [Header, Payload<C>, Signature<SignPayload<C>>],
-  `${ToString<Header>}.${ToString<Payload<C>>}.${ToString<
-    Signature<SignPayload<C>>
-  >}`
->
+export type JWT<C extends Capability = Capability> = string & Phantom<C>
 
 /**
  * A UCAN header, in the format used by the JWT encoding.
@@ -77,8 +75,8 @@ export interface Header {
  * @see https://github.com/ucan-wg/spec/#32-payload
  */
 export interface Payload<C extends Capability = Capability> {
-  iss: DID
-  aud: DID
+  iss: DIDString
+  aud: DIDString
   exp: number
   att: C[]
   nnc?: string
@@ -97,8 +95,8 @@ export type UCAN<C extends Capability = Capability> = Model<C> | RAW<C>
  */
 export interface Data<C extends Capability = Capability> {
   version: Version
-  issuer: ByteView<DID>
-  audience: ByteView<DID>
+  issuer: DIDView
+  audience: DIDView
   capabilities: C[]
   expiration: number
   notBefore?: number
@@ -111,7 +109,7 @@ export interface Data<C extends Capability = Capability> {
  * IPLD representation of a signed UCAN.
  */
 export interface Model<C extends Capability = Capability> extends Data<C> {
-  signature: Signature<SignPayload<C>>
+  signature: Signature<string>
 }
 
 /**
@@ -120,10 +118,11 @@ export interface Model<C extends Capability = Capability> extends Data<C> {
 export interface RAW<C extends Capability = Capability>
   extends ByteView<JWT<C>> {}
 
-/** A {@link View} of a UCAN that has been encoded as a JWT string. */
+/** 
+ * A {@link View} of a UCAN that has been encoded as a JWT string. 
+ */
 export interface JWTView<C extends Capability = Capability>
-  extends ByteView<JWT<C>>,
-    View<C> {}
+  extends ByteView<JWT<C>>, View<C> {}
 
 /**
  * Represents a decoded "view" of a UCAN as a JS object that can be used in your domain logic, etc.
@@ -164,21 +163,20 @@ export type Proof<
   A extends number = number
 > = Link<Model<C>, typeof CBOR_CODE, A> | Link<JWT<C>, typeof RAW_CODE, A>
 
+
 /**
- * Represents an IPLD block (including its CID) that can be decoded to data of type `T`.
- *
- * @template T logical type of the data encoded in the block. This is distinct from the multicodec code of the block's {@link CID}, which is represented by `C`.
- * @template C - multicodec code corresponding to codec used to encode the block
- * @template A - multicodec code corresponding to the hashing algorithm used in creating CID
+ * Represents a UCAN IPLD block
+ * 
+ * @template C - {@link Capability} 
+ * @template A - Multicodec code corresponding to the hashing algorithm of the CID {@link Proof}
  */
-export interface Block<
-  T extends unknown = unknown,
-  C extends number = number,
-  A extends number = number,
-  V extends CIDVersion = 1
+export interface UCANBlock<
+  C extends Capability,
+  A extends number
 > {
-  bytes: ByteView<T>
-  cid: Link<T, C, A, V>
+  bytes: ByteView<UCAN<C>>
+  cid: Proof<C,A> & CanonicalCID
+  data?: UCAN<C>
 }
 
 /**
@@ -211,16 +209,6 @@ export interface Capability<
  * "can" and "with".
  */
 export type Constraints<C extends Capability> = Omit<C, "can" | "with">
-
-/**
- * A string-endcoded decentralized identity document (DID).
- */
-export type DID<T = unknown> = ToString<T, `did:${string}`>
-
-/**
- * A byte-encoded {@link DID} that provides a `did` accessor method (see {@link Identity}).
- */
-export interface DIDView extends ByteView<DID>, Identity {}
 
 export type CIDVersion = 0 | 1
 

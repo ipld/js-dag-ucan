@@ -78,7 +78,7 @@ export const createRSAIssuer = () =>
 
 /**
  * @param {Uint8Array} bytes
- * @returns {API.Authority}
+ * @returns {API.DIDVerifier}
  */
 export const decodeAuthority = bytes => {
   const [algorithm, length] = varint.decode(bytes)

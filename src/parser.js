@@ -244,7 +244,7 @@ const parseProof = (input, context) => {
  */
 export const parseDID = (input, context) =>
   typeof input === "string" && input.startsWith("did:")
-    ? DID.parse(/** @type {UCAN.DID} */ (input))
+    ? DID.parse(/** @type {UCAN.DIDString} */ (input))
     : ParseError.throw(
         `DID has invalid representation '${context}: ${JSON.stringify(input)}'`
       )

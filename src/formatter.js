@@ -17,28 +17,23 @@ export const format = model =>
 /**
  * @template {UCAN.Capability} C
  * @param {UCAN.Data<C>} model
- * @returns {UCAN.SignPayload<C>}
  */
 export const formatSignPayload = model =>
   `${formatHeader(model)}.${formatPayload(model)}`
 
 /**
  * @param {UCAN.Data} data
- * @returns {UCAN.ToString<UCAN.ByteView<UCAN.Header>>}
  */
 export const formatHeader = data => base64url.baseEncode(encodeHeader(data))
 
 /**
  * @template {UCAN.Capability} C
  * @param {UCAN.Data<C>} data
- * @returns {UCAN.ToString<UCAN.ByteView<UCAN.Payload<C>>>}
  */
 export const formatPayload = data => base64url.baseEncode(encodePayload(data))
 
 /**
- * @template {UCAN.Capability} C
- * @param {UCAN.Signature<UCAN.SignPayload<C>>} signature
- * @returns {UCAN.ToString<UCAN.Signature<C>>}
+ * @param {UCAN.Signature<string>} signature
  */
 export const formatSignature = signature => base64url.baseEncode(signature)
 
@@ -72,13 +67,11 @@ export const encodePayload = data =>
 
 /**
  * @param {UCAN.Proof} proof
- * @returns {string}
  */
 export const encodeProof = proof => proof.toString()
 
 /**
- * @param {object} data
- * @param {UCAN.ByteView<UCAN.DID>} data.issuer
+ * @param {UCAN.Data} data
  */
 export const encodeAgorithm = data => {
   switch (algorithm(data.issuer)) {
