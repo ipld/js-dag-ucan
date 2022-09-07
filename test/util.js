@@ -68,17 +68,17 @@ export const assertCodecLoop = actual => {
  * @param {string} secret
  */
 export const createEdIssuer = secret =>
-  /** @type {UCAN.Issuer & TSUCAN.EdKeypair} */
+  /** @type {UCAN.Signer & TSUCAN.EdKeypair} */
 
   (TSUCAN.EdKeypair.fromSecretKey(secret))
 
 export const createRSAIssuer = () =>
-  /** @type {Promise<UCAN.Issuer & TSUCAN.RsaKeypair>} */
+  /** @type {Promise<UCAN.Signer & TSUCAN.RsaKeypair>} */
   (TSUCAN.RsaKeypair.create())
 
 /**
  * @param {Uint8Array} bytes
- * @returns {API.DIDVerifier}
+ * @returns {API.Verifier}
  */
 export const decodeAuthority = bytes => {
   const [algorithm, length] = varint.decode(bytes)
@@ -141,7 +141,7 @@ export const buildUCAN = async ({ issuer, audience, proofs }) =>
 export const buildJWT = async options => TSUCAN.encode(await buildUCAN(options))
 
 /**
- * @param {UCAN.Issuer} issuer
+ * @param {UCAN.Signer} issuer
  * @param {{header?:object, body:object}} token
  */
 export const formatUnsafe = async (issuer, token) => {

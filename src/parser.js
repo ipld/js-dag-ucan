@@ -229,9 +229,9 @@ const parseProof = (input, context) => {
           )}, must be a string`
         )
   try {
-    return /** @type {UCAN.UCANCid} */ (CID.parse(proof))
+    return /** @type {UCAN.Link} */ (CID.parse(proof))
   } catch (error) {
-    return /** @type {UCAN.UCANCid} */ (
+    return /** @type {UCAN.Link} */ (
       CID.create(1, raw.code, identity.digest(UTF8.encode(proof)))
     )
   }

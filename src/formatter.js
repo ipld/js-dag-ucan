@@ -66,7 +66,7 @@ export const encodePayload = data =>
   })
 
 /**
- * @param {UCAN.UCANCid} proof
+ * @param {UCAN.Link} proof
  */
 export const encodeProof = proof => proof.toString()
 

@@ -68,7 +68,7 @@ export const link = async (ucan, options) => {
  * @template {number} [A=number] - Multihash code
  * @param {UCAN.UCAN<C>} data
  * @param {{hasher?: UCAN.MultihashHasher<A>}} [options]
- * @returns {Promise<UCAN.UCANBlock<C,A>>}
+ * @returns {Promise<UCAN.Block<C,A>>}
  */
 export const write = async (data, options) => {
   const hasher = options?.hasher || sha256
@@ -77,7 +77,7 @@ export const write = async (data, options) => {
       ? [RAW.code, RAW.encode(data)]
       : [CBOR.code, CBOR.encode(data)]
 
-  const cid = /** @type {UCAN.UCANCid<C, A>} */ (
+  const cid = /** @type {UCAN.Link<C, A>} */ (
     CID.createV1(code, await hasher.digest(bytes))
   )
   return { cid, bytes, data }
@@ -168,11 +168,11 @@ export const issue = async ({
  *
  * @template {UCAN.Capability} C
  * @param {UCAN.Model<C>} ucan
- * @param {UCAN.DIDVerifier} didVerifier
+ * @param {UCAN.Verifier} verifier
  */
-export const verifySignature = (ucan, didVerifier) =>
-  formatDID(ucan.issuer) === didVerifier.did() &&
-  didVerifier.verify(
+export const verifySignature = (ucan, verifier) =>
+  formatDID(ucan.issuer) === verifier.did() &&
+  verifier.verify(
     UTF8.encode(Formatter.formatSignPayload(ucan)),
     ucan.signature
   )

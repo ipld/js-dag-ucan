@@ -5,7 +5,7 @@ import type {
 import type { MultibaseEncoder } from "multiformats/bases/interface"
 import type { code as RAW_CODE } from "multiformats/codecs/raw"
 import type { code as CBOR_CODE } from "@ipld/dag-cbor"
-import type { Signer, Verifier, Signature } from "./crypto.js"
+import type * as Crypto from "./crypto.js"
 import type { Phantom, ByteView, ToString } from "./marker.js"
 import type { CID as MultiformatsCID } from "multiformats/cid"
 
@@ -33,21 +33,21 @@ export interface DID {
 export type Identity = DID
 
 /**
- * A byte-encoded {@link DIDString} that provides a `did` accessor method (see {@link Identity}).
+ * A byte-encoded {@link DIDString} that provides a `did` accessor method (see {@link DID}).
  */
-export interface DIDView extends ByteView<DIDString>, Identity{}
+export interface DIDView extends ByteView<DIDString>, DID{}
 
 /**
- * An {@link Identity} that can verify signatures produced with the algorithm `A` (see {@link Verifier}).
+ * Entity that can verify UCAN signatures against a {@link DID} produced with the algorithm `A` (see {@link Crypto.Verifier}).
  */
-export interface DIDVerifier<A extends number = number>
-  extends Verifier<A>, Identity {}
+export interface Verifier<A extends number = number>
+  extends Crypto.Verifier<A>, DID {}
 
 /** 
- * The {@link Identity} that can issue (sign) UCANs using the signing algorithm A 
+ * Entity that can sign UCANs with keys from a {@link DID} using the signing algorithm A 
  */
-export interface Issuer<A extends number = number>
-  extends Signer<A>, Identity {}
+export interface Signer<A extends number = number>
+  extends Crypto.Signer<A>, DID {}
 
 /**
  * Verifiable facts and proofs of knowledge included in a UCAN {@link Payload} in order to
@@ -83,7 +83,7 @@ export interface Payload<C extends Capability = Capability> {
   nnc?: string
   nbf?: number
   fct?: Fact[]
-  prf?: ToString<UCANCid>
+  prf?: ToString<Link>
 }
 
 /**
@@ -108,14 +108,14 @@ export interface Data<C extends Capability = Capability> {
   notBefore?: number
   nonce?: string
   facts: Fact[]
-  proofs: UCANCid[]
+  proofs: Link[]
 }
 
 /**
  * IPLD representation of a signed UCAN.
  */
 export interface Model<C extends Capability = Capability> extends Data<C> {
-  signature: Signature<string>
+  signature: Crypto.Signature<string>
 }
 
 /**
@@ -150,7 +150,7 @@ export interface UCANOptions<
   C extends Capability = Capability,
   A extends number = number
 > {
-  issuer: Issuer<A>
+  issuer: Signer<A>
   audience: Identity
   capabilities: C[]
   lifetimeInSeconds?: number
@@ -160,16 +160,19 @@ export interface UCANOptions<
   nonce?: string
 
   facts?: Fact[]
-  proofs?: UCANCid[]
+  proofs?: Link[]
 }
 
 /**
- * Represents a UCAN {@link CID} in either IPLD or JWT format
+ * Represents a UCAN {@link IPLDLink} in either IPLD or JWT format
+ * 
+ * @template Cap - {@link Capability}
+ * @template Alg - multicodec code corresponding to the hashing algorithm of the CID
  */
-export type UCANCid<
-  C extends Capability = Capability,
-  A extends number = number
-> = (CID<typeof CBOR_CODE, A, 1> | CID<typeof RAW_CODE, A, 1>) & Phantom<C>
+export type Link<
+  Cap extends Capability = Capability,
+  Alg extends number = number
+> = IPLDLink<Model<Cap>, typeof CBOR_CODE, Alg, 1> | IPLDLink<JWT<Cap>,typeof RAW_CODE, Alg, 1>
 
 /**
  * Represents a UCAN IPLD block
@@ -177,14 +180,14 @@ export type UCANCid<
  * Note: once we change the Capability generic to an array we can merge this with ucanto transport block
  * 
  * @template C - {@link Capability} 
- * @template A - Multicodec code corresponding to the hashing algorithm of the {@link UCANCid}
+ * @template A - Multicodec code corresponding to the hashing algorithm of the {@link Link}
  */
-export interface UCANBlock<
+export interface Block<
   C extends Capability,
   A extends number
 > {
   bytes: ByteView<UCAN<C>>
-  cid: UCANCid<C,A>
+  cid: Link<C,A>
   data?: UCAN<C>
 }
 
@@ -222,33 +225,30 @@ export type Constraints<C extends Capability> = Omit<C, "can" | "with">
 export type CIDVersion = 0 | 1
 
 /**
- * Logical representation of *C*ontent *Id*entifier with optional type parameters
- * to capture the CID version, hash algorithm, and content encoding (multicodec) of the
- * identified content.
- *
- * Note: This is not an actual definition from js-multiformats because that one
- * refers to a specific class and therefore is problematic.
+ * Represents an IPLD link to a specific data of type `T`.
  * 
- * It extends Multiformats CID to avoid type issues
+ * Note: this extends MultiformatsCID until multiformats 10 is shipped
  *
- * @see https://github.com/multiformats/js-multiformats/pull/161  which will likely
- * replace this definition once merged.
- *
- * @template C - multicodec code corresponding to a codec content was encoded in
- * @template A - multicodec code corresponding to the hashing algorithm used to derive CID
+ * @template Data - Logical type of the data being linked to.
+ * @template Format - multicodec code corresponding to a codec linked data is encoded with
+ * @template Alg - multicodec code corresponding to the hashing algorithm of the CID
  * @template V - CID version
  */
-export interface CID<
-  C extends number = number,
-  A extends number = number,
+export interface IPLDLink<
+  Data extends unknown = unknown,
+  Format extends number = number,
+  Alg extends number = number,
   V extends CIDVersion = 1
-> extends MultiformatsCID {
+  > extends Phantom<Data>, MultiformatsCID {
   readonly version: V
-  readonly code: C
-  readonly multihash: MultihashDigest<A>
-  readonly bytes: Uint8Array
+  readonly code: Format
+  readonly multihash: MultihashDigest<Alg>
 
-  // readonly asCID: this
+  readonly byteOffset: number
+  readonly byteLength: number
+  readonly bytes: ByteView<IPLDLink<Data, Format, Alg, V>>
 
-  toString<Prefix extends string>(encoder?: MultibaseEncoder<Prefix>): string
+
+  equals(other: unknown): other is IPLDLink<Data, Format, Alg, CIDVersion>
+  toString<Prefix extends string>(base?: MultibaseEncoder<Prefix>): ToString<IPLDLink<Data, Format, Alg, CIDVersion>, Prefix>
 }
