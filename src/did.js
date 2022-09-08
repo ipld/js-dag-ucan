@@ -28,7 +28,7 @@ export const algorithm = key => {
 
 
 /**
- * @param {UCAN.DIDString} did
+ * @param {UCAN.DID} did
  * @returns {UCAN.DIDView}
  */
 export const parse = did => {
@@ -40,7 +40,7 @@ export const parse = did => {
 
 /**
  * @param {UCAN.DIDView | Uint8Array} key
- * @returns {UCAN.DIDString}
+ * @returns {UCAN.DID}
  */
 export const format = (key) =>
   `${DID_KEY_PREFIX}${base58btc.encode(encode(key))}`
@@ -56,7 +56,7 @@ export const decode = bytes => {
 
 /**
  * @param {Uint8Array} bytes
- * @returns {UCAN.ByteView<UCAN.DIDString>}
+ * @returns {UCAN.ByteView<UCAN.DID>}
  */
 export const encode = bytes => {
   const _ = algorithm(bytes)
@@ -64,7 +64,7 @@ export const encode = bytes => {
 }
 
 /**
- * @param {UCAN.ByteView<UCAN.DIDString>|UCAN.DIDString} input
+ * @param {UCAN.ByteView<UCAN.DID>|UCAN.DID} input
  * @returns {UCAN.DIDView}
  */
 export const from = input => {
@@ -84,7 +84,7 @@ export const from = input => {
 class DID extends Uint8Array {
   /**
    *
-   * @returns {import('./ucan.js').DIDString}
+   * @returns {import('./ucan.js').DID}
    */
   did() {
     return format(this)

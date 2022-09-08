@@ -17,8 +17,8 @@ describe("0.8.1", () => {
       const ucan = UCAN.parse(token)
       assertUCAN(ucan, {
         version: /** @type {UCAN.Version} */ (header.ucv),
-        issuer: DID.parse(/** @type {UCAN.DIDString} */ (payload.iss)),
-        audience: DID.parse(/** @type {UCAN.DIDString} */ (payload.aud)),
+        issuer: DID.parse(/** @type {UCAN.DID} */ (payload.iss)),
+        audience: DID.parse(/** @type {UCAN.DID} */ (payload.aud)),
         capabilities: payload.att.map(asCapability),
       })
 
