@@ -17,37 +17,37 @@ export type { MultihashDigest, MultibaseEncoder, MultihashHasher }
 /**
  * A string-encoded decentralized identity document (DID).
  */
-export type DIDString = `did:${string}`
+export type DID = `did:${string}`
 
 /**
- * DID object representation with a `did` accessor for the {@link DIDString}.
+ * DID object representation with a `did` accessor for the {@link DID}.
  */
-export interface DID {
-  did(): DIDString
+export interface Agent {
+  did(): DID
 }
 
 /**
- * Same as {@link DID} as compatibility layer
+ * Same as {@link Agent} as compatibility layer
  * @deprecated
  */
-export type Identity = DID
+export type Identity = Agent
 
 /**
- * A byte-encoded {@link DIDString} that provides a `did` accessor method (see {@link DID}).
+ * A byte-encoded {@link DID} that provides a `did` accessor method (see {@link Agent}).
  */
-export interface DIDView extends ByteView<DIDString>, DID{}
+export interface DIDView extends ByteView<DID>, Agent{}
 
 /**
- * Entity that can verify UCAN signatures against a {@link DID} produced with the algorithm `A` (see {@link Crypto.Verifier}).
+ * Entity that can verify UCAN signatures against a {@link Agent} produced with the algorithm `A` (see {@link Crypto.Verifier}).
  */
 export interface Verifier<A extends number = number>
-  extends Crypto.Verifier<A>, DID {}
+  extends Crypto.Verifier<A>, Agent {}
 
 /** 
- * Entity that can sign UCANs with keys from a {@link DID} using the signing algorithm A 
+ * Entity that can sign UCANs with keys from a {@link Agent} using the signing algorithm A 
  */
 export interface Signer<A extends number = number>
-  extends Crypto.Signer<A>, DID {}
+  extends Crypto.Signer<A>, Agent {}
 
 /**
  * Verifiable facts and proofs of knowledge included in a UCAN {@link Payload} in order to
@@ -76,8 +76,8 @@ export interface Header {
  * @see https://github.com/ucan-wg/spec/#32-payload
  */
 export interface Payload<C extends Capability = Capability> {
-  iss: DIDString
-  aud: DIDString
+  iss: DID
+  aud: DID
   exp: number
   att: C[]
   nnc?: string
