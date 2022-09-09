@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.0.0-beta](https://github.com/ipld/js-dag-ucan/compare/v1.7.0-beta...v2.0.0-beta) (2022-09-09)
+
+
+### ⚠ BREAKING CHANGES
+
+* fix types for exported entrypoints and simplify others (#50)
+
+### Features
+
+* fix types for exported entrypoints and simplify others ([#50](https://github.com/ipld/js-dag-ucan/issues/50)) ([f7ce660](https://github.com/ipld/js-dag-ucan/commit/f7ce660486fe21ce3f999253376988d73ff1a5e7))
+
 ## [1.7.0-beta](https://github.com/ipld/js-dag-ucan/compare/v1.6.0-beta...v1.7.0-beta) (2022-06-15)
 
 
