@@ -25,15 +25,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7
       - name: Setup node ${{ matrix.node-version }}
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
-
-      - name: Install dependencies
-        uses: bahmutov/npm-install@v1
-
+          cache: 'pnpm'
       - name: Typecheck
         uses: gozala/typescript-error-reporter-action@v1.0.8
         with:
@@ -52,14 +51,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-
-      - name: Setup Node
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7
+      - name: Setup node ${{ matrix.node-version }}
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
-
-      - name: Install dependencies
-        uses: bahmutov/npm-install@v1
+          cache: 'pnpm'
 
       - name: Test
         run: yarn test:node
@@ -75,14 +74,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-
-      - name: Setup Node
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7
+      - name: Setup node ${{ matrix.node-version }}
         uses: actions/setup-node@v2
         with:
-          node-version: 16
-
-      - name: Install dependencies
-        uses: bahmutov/npm-install@v1
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
 
       - name: Test
         run: yarn test:web
