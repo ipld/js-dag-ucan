@@ -33,6 +33,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
+      - run: pnpm install
       - name: Typecheck
         uses: gozala/typescript-error-reporter-action@v1.0.8
         with:
@@ -59,7 +60,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
-
+      - run: pnpm install
       - name: Test
         run: yarn test:node
   test-web:
@@ -82,6 +83,6 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
-
+      - run: pnpm install
       - name: Test
         run: yarn test:web
