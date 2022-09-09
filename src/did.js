@@ -5,6 +5,11 @@ import { varint } from "multiformats"
 const DID_KEY_PREFIX = `did:key:`
 export const ED25519 = 0xed
 export const RSA = 0x1205
+export const P256 = 0x1200
+
+/**
+ * @typedef {typeof ED25519|typeof RSA|typeof P256} Code
+ */
 
 /**
  * @param {Uint8Array} key
@@ -16,6 +21,13 @@ export const algorithm = key => {
     case ED25519:
     case RSA:
       return code
+    case P256: {
+      if(key.length > 35){
+        throw new RangeError('Only p256-pub compressed is supported.')
+      }
+      return code
+    }
+
     default:
       throw new RangeError(
         `Unsupported key algorithm with multicode 0x${code.toString(16)}.`
@@ -23,11 +35,10 @@ export const algorithm = key => {
   }
 }
 
-/**
- * @typedef {typeof ED25519|typeof RSA} Code
- */
 
 /**
+ * Parses a DID string into a DID buffer view 
+ * 
  * @param {UCAN.DID} did
  * @returns {UCAN.DIDView}
  */
@@ -39,11 +50,11 @@ export const parse = did => {
 }
 
 /**
- * @param {UCAN.ByteView<UCAN.DID>} key
+ * @param {UCAN.DIDView | Uint8Array} key
  * @returns {UCAN.DID}
  */
-export const format = key =>
-  /** @type {UCAN.DID} */ (`${DID_KEY_PREFIX}${base58btc.encode(encode(key))}`)
+export const format = (key) =>
+  `${DID_KEY_PREFIX}${base58btc.encode(encode(key))}`
 
 /**
  * @param {Uint8Array} bytes
@@ -59,7 +70,7 @@ export const decode = bytes => {
  * @returns {UCAN.ByteView<UCAN.DID>}
  */
 export const encode = bytes => {
-  const _ = algorithm(bytes)
+  // const _ = algorithm(bytes)
   return bytes
 }
 
@@ -77,7 +88,15 @@ export const from = input => {
   }
 }
 
+/**
+ * @implements {UCAN.DIDView}
+ * @extends {Uint8Array}
+ */
 class DID extends Uint8Array {
+  /**
+   *
+   * @returns {import('./ucan.js').DID}
+   */
   did() {
     return format(this)
   }

@@ -2803,12 +2803,12 @@ typedarray-to-buffer@^3.1.5:
   dependencies:
     is-typedarray "^1.0.0"
 
-typescript@^4.6.3:
-  version "4.6.3"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.6.3.tgz#eefeafa6afdd31d725584c67a0eaba80f6fc6c6c"
-  integrity sha512-yNIatDa5iaofVozS/uQJEl3JRWLKKGJKh6Yaiv0GLGSuhpFJe7P3SbHZ8/yjAHRQwKRoA6YZqlfjXWmVzoVSMw==
+typescript@4.8.2:
+  version "4.8.2"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.8.2.tgz#e3b33d5ccfb5914e4eeab6699cf208adee3fd790"
+  integrity sha512-C0I1UsrrDHo2fYI5oaCGbSejwX4ch+9Y5jTQELvovfmFkK3HHSZJB8MSJcWLmCUBzQBchCrZ9rMRV6GuNrvGtw==
 
-ucans@^0.9.0:
+ucans@0.9.0:
   version "0.9.0"
   resolved "https://registry.yarnpkg.com/ucans/-/ucans-0.9.0.tgz#ddff51af15830503835033084a38e93da4d182b7"
   integrity sha512-xl9jeO8mK9+JjheOCzKjwb7KAkXLnG3fpTPXQebUaMkJ6l+ovBLaZGhL/Gd4r5IuDWjW12qqwfp7FeBzbLINuQ==

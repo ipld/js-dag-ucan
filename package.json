@@ -34,14 +34,18 @@
   },
   "type": "module",
   "main": "src/lib.js",
+  "module": "src/lib.js",
   "types": "./dist/src/lib.d.ts",
   "typesVersions": {
     "*": {
-      "*": [
-        "dist/*"
-      ],
-      "dist/src/lib.d.ts": [
+      ".": [
         "dist/src/lib.d.ts"
+      ],
+      "did": [
+        "dist/src/did"
+      ],
+      "codec/*": [
+        "dist/src/codec/*"
       ]
     }
   },
@@ -54,21 +58,9 @@
       "types": "./dist/src/did.d.ts",
       "import": "./src/did.js"
     },
-    "./src/lib.js": {
-      "types": "./dist/src/lib.d.ts",
-      "import": "./src/lib.js"
-    },
-    "./src/did.js": {
-      "types": "./dist/src/did.d.ts",
-      "import": "./src/did.js"
-    },
-    "./src/codec/cbor.js": {
-      "types": "./dist/src/codec/cbor.d.ts",
-      "import": "./src/codec/cbor.js"
-    },
-    "./src/codec/raw.js": {
-      "types": "./dist/src/codec/raw.d.ts",
-      "import": "./src/codec/raw.js"
+    "./codec/*": {
+      "types": "./dist/src/codec/*",
+      "import": "./src/codec/*.js"
     }
   },
   "c8": {
@@ -82,13 +74,13 @@
     "@types/mocha": "^9.1.0",
     "@web-std/fetch": "^4.0.0",
     "@web-std/file": "^3.0.2",
-    "ucans": "^0.9.0",
+    "ucans": "0.9.0",
     "c8": "^7.11.0",
     "chai": "^4.3.6",
     "mocha": "^9.2.0",
     "nyc": "^15.1.0",
     "playwright-test": "^7.2.2",
-    "typescript": "^4.6.3",
+    "typescript": "4.8.2",
     "@noble/ed25519": "^1.6.0"
   },
   "license": "(Apache-2.0 AND MIT)"

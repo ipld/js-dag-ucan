@@ -65,7 +65,7 @@ export const match = data => ({
  * @param {string} context
  */
 const parseProof = (cid, context) =>
-  /** @type {UCAN.Proof<C>} */ (CID.asCID(cid)) ||
+  /** @type {UCAN.Link<C>} */ (CID.asCID(cid)) ||
   Parser.ParseError.throw(
     `Expected ${context} to be CID, instead got ${JSON.stringify(cid)}`
   )
