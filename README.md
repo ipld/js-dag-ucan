@@ -13,29 +13,36 @@ UCANs in primary representation are encoded in [DAG-CBOR][] and have following
 
 ```ipldsch
 type UCAN struct {
-  version String
+  v String
+  s Signature
 
-  issuer SigningKey
-  audience SigningKey
-  signature Signature
-
-  capabilities [Capability]
-  proofs [&UCAN]
-  expiration Int
-
-  facts [Fact]
-  nonce optional String
-  notBefore optional Int
+  -- Issuer DID (sender)
+  iss SigningKey
+  -- Audience DID (receiver)
+  aud SigningKey
+  -- Not Before UTC Unix Timestamp (valid from)
+  nbf optional Int
+  -- Expiration UTC Unix Timestamp (valid until)
+  exp nullable Int
+  -- Nonce
+  nnc optional String
+  -- Facts (asserted, signed data)
+  fct [Fact]
+  -- Attenuations
+  att [Capability]
+  -- Proof of delegation (hash-linked UCANs)
+  prf [&UCAN]
 } representation map {
-  field facts default []
-  field proofs default []
+  field fct default []
+  field prf default []
 }
 
+exp
 
 type Capability struct {
   with Resource
   can Ability
-  -- can have arbitrary other fields
+  nb Any
 }
 
 type Fact { String: Any }
@@ -138,7 +145,7 @@ const delegation = await UCAN.issue({
   issuer: bob,
   audience: mallory,
   capabilities: proof.capabilities,
-  proofs: [await UCAN.link(proof, {hasher: identity})]
+  proofs: [await UCAN.link(proof, { hasher: identity })],
 })
 ```
 
