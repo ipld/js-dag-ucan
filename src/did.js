@@ -5,8 +5,10 @@ import { varint } from "multiformats"
 const DID_KEY_PREFIX = `did:key:`
 export const ED25519 = 0xed
 export const RSA = 0x1205
+export const P256 = 0x1200
+
 /**
- * @typedef {typeof ED25519|typeof RSA} Code
+ * @typedef {typeof ED25519|typeof RSA|typeof P256} Code
  */
 
 /**
@@ -19,6 +21,13 @@ export const algorithm = key => {
     case ED25519:
     case RSA:
       return code
+    case P256: {
+      if(key.length> 35){
+        throw new RangeError('Only p256-pub compressed is supported.')
+      }
+      return code
+    }
+
     default:
       throw new RangeError(
         `Unsupported key algorithm with multicode 0x${code.toString(16)}.`
@@ -28,6 +37,8 @@ export const algorithm = key => {
 
 
 /**
+ * Parses a DID string into a DID buffer view 
+ * 
  * @param {UCAN.DID} did
  * @returns {UCAN.DIDView}
  */

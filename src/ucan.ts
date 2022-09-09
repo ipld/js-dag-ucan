@@ -22,32 +22,32 @@ export type DID = `did:${string}`
 /**
  * DID object representation with a `did` accessor for the {@link DID}.
  */
-export interface Agent {
+export interface Principal {
   did(): DID
 }
 
 /**
- * Same as {@link Agent} as compatibility layer
+ * Same as {@link Principal} as compatibility layer for ucanto 
  * @deprecated
  */
-export type Identity = Agent
+export type Identity = Principal
 
 /**
- * A byte-encoded {@link DID} that provides a `did` accessor method (see {@link Agent}).
+ * A byte-encoded {@link DID} that provides a `did` accessor method (see {@link Principal}).
  */
-export interface DIDView extends ByteView<DID>, Agent{}
+export interface DIDView extends ByteView<DID>, Principal{}
 
 /**
- * Entity that can verify UCAN signatures against a {@link Agent} produced with the algorithm `A` (see {@link Crypto.Verifier}).
+ * Entity that can verify UCAN signatures against a {@link Principal} produced with the algorithm `A` (see {@link Crypto.Verifier}).
  */
 export interface Verifier<A extends number = number>
-  extends Crypto.Verifier<A>, Agent {}
+  extends Crypto.Verifier<A>, Principal {}
 
 /** 
- * Entity that can sign UCANs with keys from a {@link Agent} using the signing algorithm A 
+ * Entity that can sign UCANs with keys from a {@link Principal} using the signing algorithm A 
  */
-export interface Signer<A extends number = number>
-  extends Crypto.Signer<A>, Agent {}
+export interface Issuer<A extends number = number>
+  extends Crypto.Signer<A>, Principal {}
 
 /**
  * Verifiable facts and proofs of knowledge included in a UCAN {@link Payload} in order to
@@ -150,8 +150,8 @@ export interface UCANOptions<
   C extends Capability = Capability,
   A extends number = number
 > {
-  issuer: Signer<A>
-  audience: Identity
+  issuer: Issuer<A>
+  audience: Principal
   capabilities: C[]
   lifetimeInSeconds?: number
   expiration?: number
@@ -172,7 +172,7 @@ export interface UCANOptions<
 export type Link<
   Cap extends Capability = Capability,
   Alg extends number = number
-> = IPLDLink<Model<Cap>, typeof CBOR_CODE, Alg, 1> | IPLDLink<JWT<Cap>,typeof RAW_CODE, Alg, 1>
+> = IPLDLink<Model<Cap>, typeof CBOR_CODE, Alg> | IPLDLink<JWT<Cap>,typeof RAW_CODE, Alg>
 
 /**
  * Represents a UCAN IPLD block

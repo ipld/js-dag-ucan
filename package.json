@@ -50,10 +50,18 @@
     }
   },
   "exports": {
-    ".": "./src/lib.js",
-    "./did": "./src/did.js",
-    "./codec/cbor": "./src/codec/cbor.js",
-    "./codec/raw": "./src/codec/raw.js"
+    ".": {
+      "types": "./dist/src/lib.d.ts",
+      "import": "./src/lib.js"
+    },
+    "./did": {
+      "types": "./dist/src/did.d.ts",
+      "import": "./src/did.js"
+    },
+    "./codec/*": {
+      "types": "./dist/src/codec/*",
+      "import": "./src/codec/*.js"
+    }
   },
   "c8": {
     "exclude": [
