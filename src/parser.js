@@ -10,7 +10,7 @@ import * as raw from "multiformats/codecs/raw"
 /**
  * Parse JWT formatted UCAN. Note than no validation takes place here.
  *
- * @template {UCAN.Capability} C
+ * @template {UCAN.Capabilities} C
  * @param {UCAN.JWT<C>} input
  * @returns {UCAN.Model<C>}
  */
@@ -45,7 +45,7 @@ export const parseHeader = header => {
 }
 
 /**
- * @template {UCAN.Capability} C
+ * @template {UCAN.Capabilities} C
  * @param {string} input
  */
 export const parsePayload = input => {
@@ -60,7 +60,7 @@ export const parsePayload = input => {
     notBefore: parseOptionalInt(payload.nbf, "nbf"),
     facts: parseOptionalArray(payload.fct, parseFact, "fct") || [],
     proofs: parseProofs(payload.prf, "prf"),
-    capabilities: /** @type {C[]} */ (parseCapabilities(payload.att, "att")),
+    capabilities: /** @type {C} */ (parseCapabilities(payload.att, "att")),
   }
 }
 
@@ -89,7 +89,9 @@ export const parseCapability = (input, context) =>
  * @param {string} context
  */
 export const parseCapabilities = (input, context) =>
-  parseArray(input, parseCapability, context)
+  /** @type {UCAN.Capabilities} */(parseArray(input, parseCapability, context))
+
+
 /**
  * @template {UCAN.Capability} C
  * @param {object & {can?:unknown, with?:unknown}|C} input

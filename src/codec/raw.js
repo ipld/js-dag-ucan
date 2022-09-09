@@ -11,7 +11,7 @@ export const code = RAW.code
  * Takes UCAN in RAW JWT representation and encodes it into binary
  * format.
  *
- * @template {UCAN.Capability} C
+ * @template {UCAN.Capabilities} C
  * @param {UCAN.RAW<C>} ucan
  * @returns {UCAN.ByteView<UCAN.RAW<C>>}
  */
@@ -19,7 +19,7 @@ export const encode = ucan =>
   new Uint8Array(ucan.buffer, ucan.byteOffset, ucan.byteLength)
 
 /**
- * @template {UCAN.Capability} C
+ * @template {UCAN.Capabilities} C
  * @param {UCAN.ByteView<UCAN.RAW<C>>|UCAN.RAW<C>} bytes
  * @returns {UCAN.JWTView<C>}
  */

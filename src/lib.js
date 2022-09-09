@@ -23,7 +23,7 @@ export const code = CBOR.code
  * corresponding bytes representation. UCAN in IPLD representation is encoded as
  * DAG-CBOR which JWT representation is encoded as raw bytes of JWT string.
  *
- * @template {UCAN.Capability} C
+ * @template {UCAN.Capabilities} C
  * @param {UCAN.UCAN<C>} ucan
  * @returns {UCAN.ByteView<UCAN.UCAN<C>>}
  */
@@ -36,7 +36,7 @@ export const encode = ucan =>
  * fails it falls back to secondary representation and parses it as
  * a JWT.
  *
- * @template {UCAN.Capability} C
+ * @template {UCAN.Capabilities} C
  * @param {UCAN.ByteView<UCAN.UCAN<C>>} bytes
  * @returns {UCAN.View<C>}
  */
@@ -54,7 +54,7 @@ export const decode = bytes => {
  * in JWT represetation get CID with RAW multicodec, while UCANs in IPLD
  * representation get UCAN multicodec code.
  *
- * @template {UCAN.Capability} C
+ * @template {UCAN.Capabilities} C
  * @param {UCAN.UCAN<C>} ucan
  * @param {{hasher?: UCAN.MultihashHasher}} [options]
  */
@@ -64,7 +64,7 @@ export const link = async (ucan, options) => {
 }
 
 /**
- * @template {UCAN.Capability} C
+ * @template {UCAN.Capabilities} C
  * @template {number} [A=number] - Multihash code
  * @param {UCAN.UCAN<C>} data
  * @param {{hasher?: UCAN.MultihashHasher<A>}} [options]
@@ -95,7 +95,7 @@ export const write = async (data, options) => {
  * UCAN, it only ensures structure is spec compliant and throws `ParseError`
  * if it is not.
  *
- * @template {UCAN.Capability} C
+ * @template {UCAN.Capabilities} C
  * @param {UCAN.JWT<C>} jwt
  * @returns {UCAN.View<C>}
  */
@@ -113,7 +113,7 @@ export const parse = jwt => {
 /**
  * Takes UCAN object and formats it into JWT string.
  *
- * @template {UCAN.Capability} C
+ * @template {UCAN.Capabilities} C
  * @param {UCAN.UCAN<C>} ucan
  * @returns {UCAN.JWT<C>}
  */
@@ -126,7 +126,7 @@ export const format = ucan =>
  * representation.
  *
  * @template {number} A
- * @template {UCAN.Capability} C
+ * @template {UCAN.Capabilities} C
  * @param {UCAN.UCANOptions<C, A>} options
  * @returns {Promise<UCAN.View<C>>}
  */
@@ -166,7 +166,7 @@ export const issue = async ({
 /**
  * Verifies UCAN signature.
  *
- * @template {UCAN.Capability} C
+ * @template {UCAN.Capabilities} C
  * @param {UCAN.Model<C>} ucan
  * @param {UCAN.Verifier} verifier
  */

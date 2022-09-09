@@ -3,7 +3,7 @@ import * as RAW from "multiformats/codecs/raw"
 import * as DID from "./did.js"
 
 /**
- * @template {UCAN.Capability} C
+ * @template {UCAN.Capabilities} C
  * @implements {UCAN.View<C>}
  */
 class View {
@@ -28,7 +28,7 @@ class View {
   }
 
   /**
-   * @returns {C[]}
+   * @returns {C}
    */
   get capabilities() {
     return this.model.capabilities
@@ -77,7 +77,7 @@ class View {
 }
 
 /**
- * @template {UCAN.Capability} C
+ * @template {UCAN.Capabilities} C
  * @implements {UCAN.JWTView<C>}
  */
 class JWTView extends Uint8Array {
@@ -109,7 +109,7 @@ class JWTView extends Uint8Array {
   }
 
   /**
-   * @returns {C[]}
+   * @returns {C}
    */
   get capabilities() {
     return this.model.capabilities
@@ -158,14 +158,14 @@ class JWTView extends Uint8Array {
 }
 
 /**
- * @template {UCAN.Capability} C
+ * @template {UCAN.Capabilities} C
  * @param {UCAN.Model<C>} data
  * @returns {UCAN.View<C>}
  */
-export const cbor = data => new View(data)
+export const cbor = (data) => new View(data)
 
 /**
- * @template {UCAN.Capability} C
+ * @template {UCAN.Capabilities} C
  * @param {UCAN.Model<C>} model
  * @param {UCAN.RAW<C>} bytes
  * @returns {UCAN.JWTView<C>}

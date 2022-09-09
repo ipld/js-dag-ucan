@@ -28,7 +28,7 @@ export const assertCompatible = ucan =>
   })
 
 /**
- * @template {UCAN.Capability} T
+ * @template {UCAN.Capabilities} T
  * @param {UCAN.View<T>} actual
  * @param {Partial<UCAN.View<T>>} expect
  */
@@ -101,7 +101,7 @@ export const decodeAuthority = bytes => {
  *
  * @typedef {{
  * issuer: TSUCAN.EdKeypair
- * audience: UCAN.Identity
+ * audience: UCAN.Principal
  * proofs?: string[]
  * }} BuildOptions
  *

@@ -15,6 +15,14 @@ export * from "./marker.js"
 export type { MultihashDigest, MultibaseEncoder, MultihashHasher }
 
 /**
+ * This utility type can be used in place of `T[]` where you
+ * want TS to infer things as tuples as opposed to array.
+ * Also note that `T[]` could be empty, wheres  `Tuple<T>`
+ * will contain at least one `T`.
+ */
+export type Tuple<T = unknown> = [T, ...T[]]
+
+/**
  * A string-encoded decentralized identity document (DID).
  */
 export type DID = `did:${string}`
@@ -27,27 +35,23 @@ export interface Principal {
 }
 
 /**
- * Same as {@link Principal} as compatibility layer for ucanto 
- * @deprecated
- */
-export type Identity = Principal
-
-/**
  * A byte-encoded {@link DID} that provides a `did` accessor method (see {@link Principal}).
  */
-export interface DIDView extends ByteView<DID>, Principal{}
+export interface DIDView extends ByteView<DID>, Principal {}
 
 /**
  * Entity that can verify UCAN signatures against a {@link Principal} produced with the algorithm `A` (see {@link Crypto.Verifier}).
  */
 export interface Verifier<A extends number = number>
-  extends Crypto.Verifier<A>, Principal {}
+  extends Crypto.Verifier<A>,
+    Principal {}
 
-/** 
- * Entity that can sign UCANs with keys from a {@link Principal} using the signing algorithm A 
+/**
+ * Entity that can sign UCANs with keys from a {@link Principal} using the signing algorithm A
  */
 export interface Issuer<A extends number = number>
-  extends Crypto.Signer<A>, Principal {}
+  extends Crypto.Signer<A>,
+    Principal {}
 
 /**
  * Verifiable facts and proofs of knowledge included in a UCAN {@link Payload} in order to
@@ -56,8 +60,8 @@ export interface Issuer<A extends number = number>
  */
 export type Fact = Record<string, unknown>
 
-/** 
- * The version of the UCAN spec used to produce a specific UCAN. 
+/**
+ * The version of the UCAN spec used to produce a specific UCAN.
  */
 export type Version = `${number}.${number}.${number}`
 
@@ -75,11 +79,11 @@ export interface Header {
  * A UCAN payload, in the format used by the JWT encoding.
  * @see https://github.com/ucan-wg/spec/#32-payload
  */
-export interface Payload<C extends Capability = Capability> {
+export interface Payload<C extends Capabilities = Capabilities> {
   iss: DID
   aud: DID
   exp: number
-  att: C[]
+  att: C
   nnc?: string
   nbf?: number
   fct?: Fact[]
@@ -89,21 +93,21 @@ export interface Payload<C extends Capability = Capability> {
 /**
  * Represents a UCAN encoded as a JWT string.
  */
-export type JWT<C extends Capability = Capability> = string & Phantom<C>
+export type JWT<C extends Capabilities = Capabilities> = string & Phantom<C>
 
 /**
  * A signed UCAN in either IPLD or JWT format.
  */
-export type UCAN<C extends Capability = Capability> = Model<C> | RAW<C>
+export type UCAN<C extends Capabilities = Capabilities> = Model<C> | RAW<C>
 
 /**
  * IPLD representation of an unsigned UCAN.
  */
-export interface Data<C extends Capability = Capability> {
+export interface Data<C extends Capabilities = Capabilities> {
   version: Version
   issuer: DIDView
   audience: DIDView
-  capabilities: C[]
+  capabilities: C
   expiration: number
   notBefore?: number
   nonce?: string
@@ -114,26 +118,27 @@ export interface Data<C extends Capability = Capability> {
 /**
  * IPLD representation of a signed UCAN.
  */
-export interface Model<C extends Capability = Capability> extends Data<C> {
+export interface Model<C extends Capabilities = Capabilities> extends Data<C> {
   signature: Crypto.Signature<string>
 }
 
 /**
  * The UTF-8 {@link ByteView} of a UCAN encoded as a JWT string.
  */
-export interface RAW<C extends Capability = Capability>
+export interface RAW<C extends Capabilities = Capabilities>
   extends ByteView<JWT<C>> {}
 
-/** 
- * A {@link View} of a UCAN that has been encoded as a JWT string. 
+/**
+ * A {@link View} of a UCAN that has been encoded as a JWT string.
  */
-export interface JWTView<C extends Capability = Capability>
-  extends ByteView<JWT<C>>, View<C> {}
+export interface JWTView<C extends Capabilities = Capabilities>
+  extends ByteView<JWT<C>>,
+    View<C> {}
 
 /**
  * Represents a decoded "view" of a UCAN as a JS object that can be used in your domain logic, etc.
  */
-export interface View<C extends Capability = Capability> extends Model<C> {
+export interface View<C extends Capabilities = Capabilities> extends Model<C> {
   readonly model: Model<C>
 
   issuer: DIDView
@@ -142,17 +147,17 @@ export interface View<C extends Capability = Capability> extends Model<C> {
 
 /**
  * Options used when issuing a new UCAN.
- * 
+ *
  * @template C - {@link Capability}
  * @template A - Signing algorithm
  */
 export interface UCANOptions<
-  C extends Capability = Capability,
+  C extends Capabilities = Capabilities,
   A extends number = number
 > {
   issuer: Issuer<A>
   audience: Principal
-  capabilities: C[]
+  capabilities: C
   lifetimeInSeconds?: number
   expiration?: number
   notBefore?: number
@@ -165,36 +170,35 @@ export interface UCANOptions<
 
 /**
  * Represents a UCAN {@link IPLDLink} in either IPLD or JWT format
- * 
+ *
  * @template Cap - {@link Capability}
  * @template Alg - multicodec code corresponding to the hashing algorithm of the CID
  */
 export type Link<
-  Cap extends Capability = Capability,
+  Cap extends Capabilities = Capabilities,
   Alg extends number = number
-> = IPLDLink<Model<Cap>, typeof CBOR_CODE, Alg> | IPLDLink<JWT<Cap>,typeof RAW_CODE, Alg>
+> =
+  | IPLDLink<Model<Cap>, typeof CBOR_CODE, Alg>
+  | IPLDLink<JWT<Cap>, typeof RAW_CODE, Alg>
 
 /**
  * Represents a UCAN IPLD block
- * 
+ *
  * Note: once we change the Capability generic to an array we can merge this with ucanto transport block
- * 
- * @template C - {@link Capability} 
+ *
+ * @template C - {@link Capability}
  * @template A - Multicodec code corresponding to the hashing algorithm of the {@link Link}
  */
-export interface Block<
-  C extends Capability,
-  A extends number
-> {
+export interface Block<C extends Capabilities, A extends number> {
   bytes: ByteView<UCAN<C>>
-  cid: Link<C,A>
+  cid: Link<C, A>
   data?: UCAN<C>
 }
 
 /**
  * A string that represents some action that a UCAN holder can do.
  */
-export type Ability = `${string}/${string}` | "*"
+export type Ability = `${string}/${string}` | '*'
 
 /**
  * A string that represents resource a UCAN holder can act upon.
@@ -216,17 +220,19 @@ export interface Capability<
   can: Can
 }
 
+export type Capabilities = Tuple<Capability>
+
 /**
  * Utility type for capturing capability constraints that is fields other than
  * "can" and "with".
  */
-export type Constraints<C extends Capability> = Omit<C, "can" | "with">
+export type Constraints<C extends Capability> = Omit<C, 'can' | 'with'>
 
 export type CIDVersion = 0 | 1
 
 /**
  * Represents an IPLD link to a specific data of type `T`.
- * 
+ *
  * Note: this extends MultiformatsCID until multiformats 10 is shipped
  *
  * @template Data - Logical type of the data being linked to.
@@ -239,7 +245,8 @@ export interface IPLDLink<
   Format extends number = number,
   Alg extends number = number,
   V extends CIDVersion = 1
-  > extends Phantom<Data>, MultiformatsCID {
+> extends Phantom<Data>,
+    MultiformatsCID {
   readonly version: V
   readonly code: Format
   readonly multihash: MultihashDigest<Alg>
@@ -248,7 +255,8 @@ export interface IPLDLink<
   readonly byteLength: number
   readonly bytes: ByteView<IPLDLink<Data, Format, Alg, V>>
 
-
   equals(other: unknown): other is IPLDLink<Data, Format, Alg, CIDVersion>
-  toString<Prefix extends string>(base?: MultibaseEncoder<Prefix>): ToString<IPLDLink<Data, Format, Alg, CIDVersion>, Prefix>
+  toString<Prefix extends string>(
+    base?: MultibaseEncoder<Prefix>
+  ): ToString<IPLDLink<Data, Format, Alg, CIDVersion>, Prefix>
 }

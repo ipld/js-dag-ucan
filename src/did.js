@@ -39,7 +39,7 @@ export const algorithm = key => {
 /**
  * Parses a DID string into a DID buffer view 
  * 
- * @param {UCAN.DID} did
+ * @param {string} did
  * @returns {UCAN.DIDView}
  */
 export const parse = did => {
