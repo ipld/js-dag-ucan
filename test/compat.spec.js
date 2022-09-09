@@ -1,6 +1,6 @@
 import valid from "./fixtures/0.8.1/valid.js"
 import * as UCAN from "../src/lib.js"
-import { asCapability } from "../src/parser.js"
+import { asCapability, parseCapabilities } from "../src/parser.js"
 import { assert } from "chai"
 import { assertUCAN } from "./util.js"
 import * as DID from "../src/did.js"
@@ -17,9 +17,9 @@ describe("0.8.1", () => {
       const ucan = UCAN.parse(token)
       assertUCAN(ucan, {
         version: /** @type {UCAN.Version} */ (header.ucv),
-        issuer: DID.parse(/** @type {UCAN.DID} */ (payload.iss)),
-        audience: DID.parse(/** @type {UCAN.DID} */ (payload.aud)),
-        capabilities: payload.att.map(asCapability),
+        issuer: DID.parse(payload.iss),
+        audience: DID.parse(payload.aud),
+        capabilities: parseCapabilities(payload.att, '') 
       })
 
       const proofs = ucan.proofs.map(cid => UCAN.decode(cid.multihash.digest))

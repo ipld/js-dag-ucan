@@ -5,7 +5,7 @@ import { base64url } from "multiformats/bases/base64"
 import { algorithm, ED25519, RSA } from "./did.js"
 
 /**
- * @template {UCAN.Capability} C
+ * @template {UCAN.Capabilities} C
  * @param {UCAN.Model<C>} model
  * @returns {UCAN.JWT<C>}
  */
@@ -15,7 +15,7 @@ export const format = model =>
   )}`
 
 /**
- * @template {UCAN.Capability} C
+ * @template {UCAN.Capabilities} C
  * @param {UCAN.Data<C>} model
  */
 export const formatSignPayload = model =>
@@ -27,7 +27,7 @@ export const formatSignPayload = model =>
 export const formatHeader = data => base64url.baseEncode(encodeHeader(data))
 
 /**
- * @template {UCAN.Capability} C
+ * @template {UCAN.Capabilities} C
  * @param {UCAN.Data<C>} data
  */
 export const formatPayload = data => base64url.baseEncode(encodePayload(data))
@@ -49,7 +49,7 @@ export const encodeHeader = data =>
   })
 
 /**
- * @template {UCAN.Capability} C
+ * @template {UCAN.Capabilities} C
  * @param {UCAN.Data<C>} data
  * @returns {UCAN.ByteView<UCAN.Payload<C>>}
  */

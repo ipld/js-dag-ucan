@@ -13,7 +13,7 @@ export const code = CBOR.code
  * corresponding bytes representation. UCAN in IPLD representation is encoded as
  * DAG-CBOR which JWT representation is encoded as raw bytes of JWT string.
  *
- * @template {UCAN.Capability} C
+ * @template {UCAN.Capabilities} C
  * @param {UCAN.Model<C>} ucan
  * @returns {UCAN.ByteView<UCAN.Model<C>>}
  */
@@ -33,14 +33,14 @@ export const encode = ucan => {
  * Decodes UCAN in primary CBOR representation. It does not validate UCAN, it's
  * signature or proof chain. This is to say decoded UCAN may be invalid.
  *
- * @template {UCAN.Capability} C
+ * @template {UCAN.Capabilities} C
  * @param {UCAN.ByteView<UCAN.Model<C>>} bytes
  * @returns {UCAN.View<C>}
  */
 export const decode = bytes => View.cbor(match(CBOR.decode(bytes)))
 
 /**
- * @template {UCAN.Capability} C
+ * @template {UCAN.Capabilities} C
  * @param {{[key in PropertyKey]: unknown}|UCAN.Model<C>} data
  * @returns {UCAN.Model<C>}
  */
@@ -48,7 +48,7 @@ export const match = data => ({
   version: Parser.parseVersion(data.version, "version"),
   issuer: parseDID(data.issuer, "issuer"),
   audience: parseDID(data.audience, "audience"),
-  capabilities: /** @type {C[]} */ (
+  capabilities: /** @type {C} */ (
     Parser.parseCapabilities(data.capabilities, "capabilities")
   ),
   expiration: Parser.parseInt(data.expiration, "expiration"),
@@ -60,7 +60,7 @@ export const match = data => ({
 })
 
 /**
- * @template {UCAN.Capability} C
+ * @template {UCAN.Capabilities} C
  * @param {unknown} cid
  * @param {string} context
  */

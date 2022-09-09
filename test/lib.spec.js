@@ -574,7 +574,7 @@ describe("parse", () => {
   })
 
   it("hash conistent ucan is parsed into IPLD representation", async () => {
-    /** @type {UCAN.JWT<{with: 'mailto:*', can: 'send/message'}>} */
+    /** @type {UCAN.JWT<[{with: 'mailto:*', can: 'send/message'}]>} */
     const jwt = await formatUnsafe(alice, {
       body: {
         att: [
