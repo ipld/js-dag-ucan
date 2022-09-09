@@ -16,8 +16,9 @@ export type { MultihashDigest, MultibaseEncoder, MultihashHasher }
 
 /**
  * This utility type can be used in place of `T[]` where you
- * want TS to infer things as tuples as opposed to array. This
-
+ * want TS to infer things as tuples as opposed to array.
+ * Also note that `T[]` could be empty, wheres  `Tuple<T>`
+ * will contain at least one `T`.
  */
 export type Tuple<T = unknown> = [T, ...T[]]
 
