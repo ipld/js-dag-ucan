@@ -22,7 +22,7 @@ export const algorithm = key => {
     case RSA:
       return code
     case P256: {
-      if(key.length> 35){
+      if(key.length > 35){
         throw new RangeError('Only p256-pub compressed is supported.')
       }
       return code
@@ -70,7 +70,7 @@ export const decode = bytes => {
  * @returns {UCAN.ByteView<UCAN.DID>}
  */
 export const encode = bytes => {
-  const _ = algorithm(bytes)
+  // const _ = algorithm(bytes)
   return bytes
 }
 

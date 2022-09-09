@@ -314,7 +314,33 @@ describe("errors", () => {
         issuer: alice,
         audience: {
           did: () =>
-            "did:key:zDnaerDaTF5BXEavCrfRZEk316dpbLsfPDZ3WJ5hRTPFU2169",
+            "did:key:zZfaerDaTF5BXEavCrfRZEk316dpbLsfPDZ3WJ5hRTPFU2169",
+        },
+        nonce: "hello",
+        capabilities: [
+          {
+            with: alice.did(),
+            can: "store/put",
+          },
+        ],
+      })
+      assert.fail("Should have thrown on bad did")
+    } catch (error) {
+      console.log("🚀 ~ file: lib.spec.js ~ line 329 ~ it ~ error", error)
+      assert.match(
+        String(error),
+        /Unsupported key algorithm with multicode 0x1/
+      )
+    }
+  })
+
+  it("throws on uncompressed p256 did", async () => {
+    try {
+      await UCAN.issue({
+        issuer: alice,
+        audience: {
+          did: () =>
+            "did:key:z4oJ8dmoanp9ZgWVcNgPretVkK3UNaDGdahF1jhKVXcvK17Ry1F6jAa7BvXvUAccw9w5SNHVVSTTDjJeS8wnb92VrsjxG",
         },
         nonce: "hello",
         capabilities: [
@@ -328,9 +354,29 @@ describe("errors", () => {
     } catch (error) {
       assert.match(
         String(error),
-        /Unsupported key algorithm with multicode 0x1200/
+        /Only p256-pub compressed is supported./
       )
     }
+  })
+
+  it("should pass for compressed p256 did", async () => {
+    const did = "did:key:zDnaehbKF2iga4pf2D42ygGALc9EkQzTdcu43RpaAk45sUdW6"
+    const ucan = await UCAN.issue({
+      issuer: alice,
+      audience: {
+        did: () =>
+          did,
+      },
+      nonce: "hello",
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "store/put",
+        },
+      ],
+    })
+
+    assert(ucan.audience.did() === did)
   })
 
   /** @type {Record<string, [UCAN.Capability, ?RegExp]>} */
