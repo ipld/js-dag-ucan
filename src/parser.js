@@ -24,9 +24,9 @@ export const parse = input => {
         )
 
   return {
-    ...parseHeader(header),
     ...parsePayload(payload),
-    signature: base64url.baseDecode(signature),
+    v: parseHeader(header).v,
+    s: base64url.baseDecode(signature),
   }
 }
 
@@ -40,7 +40,7 @@ export const parseHeader = header => {
   const _algorithm = parseAlgorithm(alg)
 
   return {
-    version: parseVersion(ucv, "ucv"),
+    v: parseVersion(ucv, "ucv"),
   }
 }
 
@@ -53,16 +53,24 @@ export const parsePayload = input => {
   const payload = json.decode(base64url.baseDecode(input))
 
   return {
-    issuer: parseDID(payload.iss, "iss"),
-    audience: parseDID(payload.aud, "aud"),
-    expiration: parseInt(payload.exp, "exp"),
-    nonce: parseOptionalString(payload.nnc, "nnc"),
-    notBefore: parseOptionalInt(payload.nbf, "nbf"),
-    facts: parseOptionalArray(payload.fct, parseFact, "fct") || [],
-    proofs: parseProofs(payload.prf, "prf"),
-    capabilities: /** @type {C} */ (parseCapabilities(payload.att, "att")),
+    iss: parseDID(payload.iss, "iss"),
+    aud: parseDID(payload.aud, "aud"),
+    exp: parseExpiry(payload.exp, "exp"),
+    nnc: parseOptionalString(payload.nnc, "nnc"),
+    nbf: parseOptionalInt(payload.nbf, "nbf"),
+    fct: parseOptionalArray(payload.fct, parseFact, "fct") || [],
+    prf: parseProofs(payload.prf, "prf"),
+    att: /** @type {C} */ (parseCapabilities(payload.att, "att")),
   }
 }
+
+/**
+ * @param {unknown} input
+ * @param {string} context
+ * @return {number|null}
+ */
+export const parseExpiry = (input, context) =>
+  input === null ? null : parseInt(input, context)
 
 /**
  * @param {unknown} input
@@ -89,8 +97,7 @@ export const parseCapability = (input, context) =>
  * @param {string} context
  */
 export const parseCapabilities = (input, context) =>
-  /** @type {UCAN.Capabilities} */(parseArray(input, parseCapability, context))
-
+  /** @type {UCAN.Capabilities} */ (parseArray(input, parseCapability, context))
 
 /**
  * @template {UCAN.Capability} C
@@ -278,6 +285,24 @@ export const parseOptionalInt = (input, context) => {
       return ParseError.throw(
         `${context} has invalid value ${JSON.stringify(input)}`
       )
+  }
+}
+
+/**
+ *
+ * @param {unknown} input
+ * @param {string} context
+ */
+export const praseIntOrNull = (input, context) => {
+  switch (typeof input) {
+    case "number":
+      return parseInt(/** @type {any} */ (input), context)
+    default:
+      return input === null
+        ? null
+        : ParseError.throw(
+            `${context} has invalid value ${JSON.stringify(input)}`
+          )
   }
 }
 

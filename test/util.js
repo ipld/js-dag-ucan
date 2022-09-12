@@ -10,7 +10,7 @@ import * as API from "../src/ucan.js"
 import * as DID from "../src/did.js"
 
 /**
- * @param {UCAN.UCAN} ucan
+ * @param {UCAN.View} ucan
  */
 export const toTSUCAN = ucan => {
   const jwt = UCAN.format(ucan)
@@ -18,7 +18,7 @@ export const toTSUCAN = ucan => {
 }
 
 /**
- * @param {UCAN.UCAN} ucan
+ * @param {UCAN.View} ucan
  */
 export const assertCompatible = ucan =>
   TSUCAN.validate(UCAN.format(ucan), {
@@ -149,7 +149,7 @@ export const formatUnsafe = async (issuer, token) => {
     json.encode({
       typ: "JWT",
       alg: "EdDSA",
-      ucv: "0.8.1",
+      ucv: "0.9.0",
       ...token.header,
     })
   )

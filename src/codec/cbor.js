@@ -1,7 +1,6 @@
 import * as UCAN from "../ucan.js"
 import * as CBOR from "@ipld/dag-cbor"
 import * as Parser from "../parser.js"
-import * as View from "../view.js"
 import * as DID from "../did.js"
 import { CID } from "multiformats/cid"
 
@@ -14,18 +13,18 @@ export const code = CBOR.code
  * DAG-CBOR which JWT representation is encoded as raw bytes of JWT string.
  *
  * @template {UCAN.Capabilities} C
- * @param {UCAN.Model<C>} ucan
+ * @param {UCAN.Model<C>} model
  * @returns {UCAN.ByteView<UCAN.Model<C>>}
  */
-export const encode = ucan => {
-  const { facts, nonce, notBefore, ...rest } = match(ucan)
+export const encode = model => {
+  const { fct, nnc, nbf, ...rest } = match(model)
   return CBOR.encode({
     ...rest,
     // leave out optionals unless they are set
-    ...(facts.length > 0 && { facts }),
-    ...(ucan.nonce && { nonce }),
-    ...(ucan.notBefore && { notBefore: ucan.notBefore }),
-    signature: Parser.parseBytes(ucan.signature, "signature"),
+    ...(fct.length > 0 && { fct }),
+    ...(model.nnc && { nnc }),
+    ...(model.nbf && { nbf: model.nbf }),
+    s: Parser.parseBytes(model.s, "signature"),
   })
 }
 
@@ -35,9 +34,9 @@ export const encode = ucan => {
  *
  * @template {UCAN.Capabilities} C
  * @param {UCAN.ByteView<UCAN.Model<C>>} bytes
- * @returns {UCAN.View<C>}
+ * @returns {UCAN.Model<C>}
  */
-export const decode = bytes => View.cbor(match(CBOR.decode(bytes)))
+export const decode = bytes => match(CBOR.decode(bytes))
 
 /**
  * @template {UCAN.Capabilities} C
@@ -45,18 +44,19 @@ export const decode = bytes => View.cbor(match(CBOR.decode(bytes)))
  * @returns {UCAN.Model<C>}
  */
 export const match = data => ({
-  version: Parser.parseVersion(data.version, "version"),
-  issuer: parseDID(data.issuer, "issuer"),
-  audience: parseDID(data.audience, "audience"),
-  capabilities: /** @type {C} */ (
-    Parser.parseCapabilities(data.capabilities, "capabilities")
+  v: Parser.parseVersion(data.v, "version"),
+  iss: parseDID(data.iss, "issuer"),
+  aud: parseDID(data.aud, "audience"),
+  att: /** @type {C} */ (Parser.parseCapabilities(data.att, "capabilities")),
+  exp: Parser.parseExpiry(
+    data.exp === Infinity ? null : data.exp,
+    "expiration"
   ),
-  expiration: Parser.parseInt(data.expiration, "expiration"),
-  proofs: Parser.parseOptionalArray(data.proofs, parseProof, "proofs") || [],
-  signature: Parser.parseBytes(data.signature, "signature"),
-  nonce: Parser.parseOptionalString(data.nonce, "nonce"),
-  facts: Parser.parseOptionalArray(data.facts, Parser.parseFact, "facts") || [],
-  notBefore: Parser.parseOptionalInt(data.notBefore, "notBefore"),
+  prf: Parser.parseOptionalArray(data.prf, parseProof, "proofs") || [],
+  s: Parser.parseBytes(data.s, "signature"),
+  nnc: Parser.parseOptionalString(data.nnc, "nonce"),
+  fct: Parser.parseOptionalArray(data.fct, Parser.parseFact, "facts") || [],
+  nbf: Parser.parseOptionalInt(data.nbf, "notBefore"),
 })
 
 /**

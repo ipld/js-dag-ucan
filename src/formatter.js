@@ -10,9 +10,7 @@ import { algorithm, ED25519, RSA } from "./did.js"
  * @returns {UCAN.JWT<C>}
  */
 export const format = model =>
-  `${formatHeader(model)}.${formatPayload(model)}.${formatSignature(
-    model.signature
-  )}`
+  `${formatHeader(model)}.${formatPayload(model)}.${formatSignature(model.s)}`
 
 /**
  * @template {UCAN.Capabilities} C
@@ -44,7 +42,7 @@ export const formatSignature = signature => base64url.baseEncode(signature)
 export const encodeHeader = data =>
   json.encode({
     alg: encodeAgorithm(data),
-    ucv: data.version,
+    ucv: data.v,
     typ: "JWT",
   })
 
@@ -55,14 +53,15 @@ export const encodeHeader = data =>
  */
 export const encodePayload = data =>
   json.encode({
-    iss: DID.format(data.issuer),
-    aud: DID.format(data.audience),
-    att: data.capabilities,
-    exp: data.expiration,
-    prf: data.proofs.map(encodeProof),
-    ...(data.facts.length > 0 && { fct: data.facts }),
-    ...(data.nonce && { nnc: data.nonce }),
-    ...(data.notBefore && { nbf: data.notBefore }),
+    iss: DID.format(data.iss),
+    aud: DID.format(data.aud),
+    att: data.att,
+    exp: data.exp,
+    prf: data.prf.map(encodeProof),
+    // leave out optionals and empty fields
+    ...(data.fct.length > 0 && { fct: data.fct }),
+    ...(data.nnc && { nnc: data.nnc }),
+    ...(data.nbf && { nbf: data.nbf }),
   })
 
 /**
@@ -74,13 +73,13 @@ export const encodeProof = proof => proof.toString()
  * @param {UCAN.Data} data
  */
 export const encodeAgorithm = data => {
-  switch (algorithm(data.issuer)) {
+  switch (algorithm(data.iss)) {
     case ED25519:
       return "EdDSA"
     case RSA:
       return "RS256"
     /* c8 ignore next 2 */
     default:
-      throw new RangeError(`Unknown KeyType "${algorithm(data.issuer)}"`)
+      throw new RangeError(`Unknown KeyType "${algorithm(data.iss)}"`)
   }
 }

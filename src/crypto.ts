@@ -25,6 +25,8 @@ export interface Signer<A extends number = number> {
    * Takes byte encoded payload and produces a verifiable signature.
    */
   sign<T>(payload: ByteView<T>): Await<Signature<T, A>>
+
+  readonly algorithm: A
 }
 
 /**

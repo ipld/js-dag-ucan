@@ -12,6 +12,8 @@ import type { CID as MultiformatsCID } from "multiformats/cid"
 export * from "./crypto.js"
 export * from "./marker.js"
 
+export type Code = typeof CBOR_CODE | typeof RAW_CODE
+
 export type { MultihashDigest, MultibaseEncoder, MultihashHasher }
 
 /**
@@ -82,7 +84,7 @@ export interface Header {
 export interface Payload<C extends Capabilities = Capabilities> {
   iss: DID
   aud: DID
-  exp: number
+  exp: number | null
   att: C
   nnc?: string
   nbf?: number
@@ -93,56 +95,73 @@ export interface Payload<C extends Capabilities = Capabilities> {
 /**
  * Represents a UCAN encoded as a JWT string.
  */
-export type JWT<C extends Capabilities = Capabilities> = string & Phantom<C>
+export type JWT<C extends Capabilities = Capabilities> = string &
+  Phantom<Model<C>>
 
 /**
  * A signed UCAN in either IPLD or JWT format.
  */
-export type UCAN<C extends Capabilities = Capabilities> = Model<C> | RAW<C>
+export type UCAN<C extends Capabilities = Capabilities> = Model<C> | JWT<C>
 
 /**
  * IPLD representation of an unsigned UCAN.
  */
 export interface Data<C extends Capabilities = Capabilities> {
-  version: Version
-  issuer: DIDView
-  audience: DIDView
-  capabilities: C
-  expiration: number
-  notBefore?: number
-  nonce?: string
-  facts: Fact[]
-  proofs: Link[]
+  v: Version
+  iss: DIDView
+  aud: DIDView
+  att: C
+  exp: number | null
+  nbf?: number
+  nnc?: string
+  fct: Fact[]
+  prf: Link[]
 }
 
 /**
  * IPLD representation of a signed UCAN.
  */
 export interface Model<C extends Capabilities = Capabilities> extends Data<C> {
-  signature: Crypto.Signature<string>
+  s: Crypto.Signature<string>
 }
 
-/**
- * The UTF-8 {@link ByteView} of a UCAN encoded as a JWT string.
- */
-export interface RAW<C extends Capabilities = Capabilities>
-  extends ByteView<JWT<C>> {}
+export type View<C extends Capabilities = Capabilities> =
+  | CBORView<C>
+  | JWTView<C>
+
+export interface CBORView<C extends Capabilities = Capabilities>
+  extends UCANView<C> {
+  readonly code: typeof CBOR_CODE
+}
 
 /**
  * A {@link View} of a UCAN that has been encoded as a JWT string.
  */
 export interface JWTView<C extends Capabilities = Capabilities>
-  extends ByteView<JWT<C>>,
-    View<C> {}
+  extends UCANView<C> {
+  readonly code: typeof RAW_CODE
+  readonly bytes: ByteView<JWT<C>>
+}
 
 /**
  * Represents a decoded "view" of a UCAN as a JS object that can be used in your domain logic, etc.
  */
-export interface View<C extends Capabilities = Capabilities> extends Model<C> {
+export interface UCANView<C extends Capabilities = Capabilities> {
   readonly model: Model<C>
 
-  issuer: DIDView
-  audience: DIDView
+  readonly issuer: DIDView
+  readonly audience: DIDView
+
+  readonly version: Version
+
+  readonly capabilities: C
+  readonly expiration: number
+  readonly notBefore?: number
+  readonly nonce?: string
+  readonly facts: Fact[]
+  readonly proofs: Link[]
+
+  readonly signature: Crypto.Signature<string>
 }
 
 /**
@@ -198,7 +217,7 @@ export interface Block<C extends Capabilities, A extends number> {
 /**
  * A string that represents some action that a UCAN holder can do.
  */
-export type Ability = `${string}/${string}` | '*'
+export type Ability = `${string}/${string}` | "*"
 
 /**
  * A string that represents resource a UCAN holder can act upon.
@@ -214,19 +233,15 @@ export type Resource = `${string}:${string}`
  */
 export interface Capability<
   Can extends Ability = Ability,
-  With extends Resource = Resource
+  With extends Resource = Resource,
+  Caveats extends unknown = unknown
 > {
   with: With
   can: Can
+  nb?: Caveats
 }
 
 export type Capabilities = Tuple<Capability>
-
-/**
- * Utility type for capturing capability constraints that is fields other than
- * "can" and "with".
- */
-export type Constraints<C extends Capability> = Omit<C, 'can' | 'with'>
 
 export type CIDVersion = 0 | 1
 
