@@ -1,7 +1,6 @@
 import * as UCAN from "./ucan.js"
 import * as DID from "./did.js"
 import * as UTF8 from "./utf8.js"
-import * as Formatter from "./formatter.js"
 import { code as RAW_CODE } from "multiformats/codecs/raw"
 import { code as CBOR_CODE } from "@ipld/dag-cbor"
 
