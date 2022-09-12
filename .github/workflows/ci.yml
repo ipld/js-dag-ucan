@@ -63,7 +63,7 @@ jobs:
           cache: 'pnpm'
       - run: pnpm install
       - name: Test
-        run: yarn test:node
+        run: pnpm test:node
   test-web:
     name: Test Web
     runs-on: ubuntu-latest
@@ -76,7 +76,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - uses: pnpm/action-setup@v2
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
         with:
           version: 7
       - name: Setup node ${{ matrix.node-version }}
@@ -84,6 +85,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
-      - run: pnpm install
+      - name: Install dependencies
+        run: pnpm install
       - name: Test
         run: yarn test:web
