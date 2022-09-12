@@ -1,5 +1,21 @@
 # Changelog
 
+## [3.0.0-beta](https://github.com/ipld/js-dag-ucan/compare/v2.0.0-beta...v3.0.0-beta) (2022-09-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* add support for multiple caps in the types (#53)
+
+### Features
+
+* add support for multiple caps in the types ([#53](https://github.com/ipld/js-dag-ucan/issues/53)) ([2cdae6e](https://github.com/ipld/js-dag-ucan/commit/2cdae6ed9010eebc8d16922e388300f647a2526e))
+
+
+### Bug Fixes
+
+* default for block caps and change to pnpm ([#55](https://github.com/ipld/js-dag-ucan/issues/55)) ([d2638c3](https://github.com/ipld/js-dag-ucan/commit/d2638c3bac21937c671c6b06bb66cfe46bd71a3c))
+
 ## [2.0.0-beta](https://github.com/ipld/js-dag-ucan/compare/v1.7.0-beta...v2.0.0-beta) (2022-09-09)
 
 
