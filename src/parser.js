@@ -289,24 +289,6 @@ export const parseOptionalInt = (input, context) => {
 }
 
 /**
- *
- * @param {unknown} input
- * @param {string} context
- */
-export const praseIntOrNull = (input, context) => {
-  switch (typeof input) {
-    case "number":
-      return parseInt(/** @type {any} */ (input), context)
-    default:
-      return input === null
-        ? null
-        : ParseError.throw(
-            `${context} has invalid value ${JSON.stringify(input)}`
-          )
-  }
-}
-
-/**
  * @param {unknown} input
  * @param {string} context
  * @returns {UCAN.Version}

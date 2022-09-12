@@ -96,9 +96,6 @@ export class JWTView extends View {
     super(model, RAW_CODE)
     this.bytes = bytes
   }
-  format() {
-    return UTF8.decode(this.bytes)
-  }
 }
 
 /**
