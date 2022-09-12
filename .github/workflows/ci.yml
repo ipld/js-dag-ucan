@@ -5,13 +5,13 @@ on:
     branches:
       - main
     paths:
-      - "src/**"
+      - 'src/**'
   pull_request:
     branches:
       - main
     paths:
-      - "src**"
-      - ".github/workflows/ci.yml"
+      - 'src**'
+      - '.github/workflows/ci.yml'
   workflow_dispatch:
 
 jobs:
@@ -63,7 +63,7 @@ jobs:
           cache: 'pnpm'
       - run: pnpm install
       - name: Test
-        run: pnpm test:node
+        run: pnpm run test:node
   test-web:
     name: Test Web
     runs-on: ubuntu-latest
@@ -88,4 +88,4 @@ jobs:
       - name: Install dependencies
         run: pnpm install
       - name: Test
-        run: yarn test:web
+        run: yarn run test:web
