@@ -8,7 +8,6 @@ import { code as CBOR_CODE } from "@ipld/dag-cbor"
 /**
  * @template {UCAN.Capabilities} C
  * @template {UCAN.Code} Code
- * @implements {UCAN.View<C>}
  */
 class View {
   /**
