@@ -208,7 +208,7 @@ export type Link<
  * @template C - {@link Capability}
  * @template A - Multicodec code corresponding to the hashing algorithm of the {@link Link}
  */
-export interface Block<C extends Capabilities, A extends number> {
+export interface Block<C extends Capabilities = Capabilities, A extends number = number> {
   bytes: ByteView<UCAN<C>>
   cid: Link<C, A>
   data?: UCAN<C>
