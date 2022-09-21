@@ -244,20 +244,6 @@ export const parseDID = (input, context) =>
       )
 
 /**
- *
- * @param {unknown} input
- * @param {string} alg
- * @param {string} context
- */
-
-export const parseIssuer = (input, alg, context) =>
-  typeof input === "string" && input.startsWith("did:")
-    ? Object.assign(DID.parse(input), { signingAlgorithm: alg })
-    : ParseError.throw(
-        `DID has invalid representation '${context}: ${JSON.stringify(input)}'`
-      )
-
-/**
  * @param {unknown} input
  * @param {string} [context]
  */
@@ -298,18 +284,6 @@ export const parseVersion = (input, context) =>
     ? /** @type {UCAN.Version} */ (input)
     : ParseError.throw(`Invalid version '${context}: ${JSON.stringify(input)}'`)
 
-/**
- *
- * @param {unknown} input
- * @param {string} context
- * @returns {Uint8Array}
- */
-export const parseBytes = (input, context) =>
-  input instanceof Uint8Array
-    ? input
-    : ParseError.throw(
-        `${context} must be Uint8Array, instead got ${JSON.stringify(input)}`
-      )
 /**
  * @param {unknown} input
  * @returns {"JWT"}

@@ -3,16 +3,16 @@ import { varint } from "multiformats"
 import { base64url } from "multiformats/bases/base64"
 import * as UTF8 from "./utf8.js"
 
-const VAR_SIG = 0xd000
-const ES256K = 0xd0e7
-const BLS12381G1 = 0xd0ea
-const BLS12381G2 = 0xd0eb
-const EdDSA = 0xd0ed
-const ES256 = 0xd01200
-const ES384 = 0xd01201
-const ES512 = 0xd01202
-const RS256 = 0xd01205
-const EIP191 = 0xd191
+export const NON_STANDARD = 0xd000
+export const ES256K = 0xd0e7
+export const BLS12381G1 = 0xd0ea
+export const BLS12381G2 = 0xd0eb
+export const EdDSA = 0xd0ed
+export const ES256 = 0xd01200
+export const ES384 = 0xd01201
+export const ES512 = 0xd01202
+export const RS256 = 0xd01205
+export const EIP191 = 0xd191
 
 /**
  * @param {number} code
@@ -70,7 +70,7 @@ export const nameCode = name => {
     case "EIP191":
       return EIP191
     default:
-      return VAR_SIG
+      return NON_STANDARD
   }
 }
 
@@ -112,7 +112,7 @@ class Signature extends Uint8Array {
  */
 const algorithm = signature => {
   const { code, raw, buffer, byteOffset } = signature
-  if (code === VAR_SIG) {
+  if (code === NON_STANDARD) {
     const offset =
       raw.byteLength +
       varint.encodingLength(code) +
@@ -164,21 +164,23 @@ export const create = (code, raw) => {
  */
 export const createNamed = (name, raw) => {
   const code = nameCode(name)
-  return code === VAR_SIG ? createNonStandard(name, raw) : create(code, raw)
+  return code === NON_STANDARD
+    ? createNonStandard(name, raw)
+    : create(code, raw)
 }
 
 /**
  * @template {unknown} T
  * @param {string} name
  * @param {Uint8Array} raw
- * @return {UCAN.Signature<T, typeof VAR_SIG>}
+ * @return {UCAN.Signature<T, typeof NON_STANDARD>}
  */
 export const createNonStandard = (name, raw) => {
-  const code = VAR_SIG
+  const code = NON_STANDARD
   const codeSize = varint.encodingLength(code)
   const rawSize = varint.encodingLength(raw.byteLength)
   const nameBytes = UTF8.encode(name)
-  /** @type {Signature<T, typeof VAR_SIG>} */
+  /** @type {Signature<T, typeof NON_STANDARD>} */
   const signature = new Signature(
     codeSize + rawSize + raw.byteLength + nameBytes.byteLength
   )
@@ -214,13 +216,9 @@ export const decode = bytes => {
     )
   }
 
-  /** @type {Signature<T, A>} */
-  const signature = new Signature(
-    bytes.buffer,
-    bytes.byteOffset,
-    bytes.byteLength
-  )
-  const { code, size, algorithm, raw } = signature
+  /** @type {UCAN.Signature<T, A>} */
+  const signature = view(bytes)
+  const { code, algorithm, raw } = signature
   return signature
 }
 
@@ -240,8 +238,7 @@ export const encode = signature => decode(signature)
  * @param {UCAN.MultibaseEncoder<Prefix>} [base]
  * @returns {UCAN.ToString<UCAN.Signature<T, A>>}
  */
-export const format = (signature, base) =>
-  (base || base64url).encode(signature.raw)
+export const format = (signature, base) => (base || base64url).encode(signature)
 
 /**
  * @template {unknown} T
