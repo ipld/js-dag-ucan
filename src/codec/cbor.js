@@ -1,6 +1,7 @@
 import * as UCAN from "../ucan.js"
 import * as CBOR from "@ipld/dag-cbor"
 import * as Parser from "../parser.js"
+import * as Signature from "../signature.js"
 import * as DID from "../did.js"
 import { CID } from "multiformats/cid"
 
@@ -24,7 +25,7 @@ export const encode = model => {
     ...(fct.length > 0 && { fct }),
     ...(model.nnc && { nnc }),
     ...(model.nbf && { nbf: model.nbf }),
-    s: Parser.parseBytes(model.s, "signature"),
+    s: Signature.encode(model.s),
   })
 }
 
@@ -36,12 +37,18 @@ export const encode = model => {
  * @param {UCAN.ByteView<UCAN.Model<C>>} bytes
  * @returns {UCAN.Model<C>}
  */
-export const decode = bytes => match(CBOR.decode(bytes))
+export const decode = bytes => {
+  const model = CBOR.decode(bytes)
+  return {
+    ...match(model),
+    s: Signature.decode(model.s),
+  }
+}
 
 /**
  * @template {UCAN.Capabilities} C
  * @param {{[key in PropertyKey]: unknown}|UCAN.Model<C>} data
- * @returns {UCAN.Model<C>}
+ * @returns {UCAN.Data<C>}
  */
 export const match = data => ({
   v: Parser.parseVersion(data.v, "version"),
@@ -53,7 +60,6 @@ export const match = data => ({
     "expiration"
   ),
   prf: Parser.parseOptionalArray(data.prf, parseProof, "proofs") || [],
-  s: Parser.parseBytes(data.s, "signature"),
   nnc: Parser.parseOptionalString(data.nnc, "nonce"),
   fct: Parser.parseOptionalArray(data.fct, Parser.parseFact, "facts") || [],
   nbf: Parser.parseOptionalInt(data.nbf, "notBefore"),

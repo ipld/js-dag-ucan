@@ -6,6 +6,7 @@ import { CID } from "multiformats"
 import { identity } from "multiformats/hashes/identity"
 import * as DID from "./did.js"
 import * as raw from "multiformats/codecs/raw"
+import * as Signature from "./signature.js"
 
 /**
  * Parse JWT formatted UCAN. Note than no validation takes place here.
@@ -23,10 +24,12 @@ export const parse = input => {
           `Can't parse UCAN: ${input}: Expected JWT format: 3 dot-separated base64url-encoded values.`
         )
 
+  const { ucv, alg } = parseHeader(header)
+
   return {
     ...parsePayload(payload),
-    v: parseHeader(header).v,
-    s: base64url.baseDecode(signature),
+    v: ucv,
+    s: Signature.createNamed(alg, base64url.baseDecode(signature)),
   }
 }
 
@@ -36,17 +39,17 @@ export const parse = input => {
 export const parseHeader = header => {
   const { ucv, alg, typ } = json.decode(base64url.baseDecode(header))
 
-  const _type = parseJWT(typ)
-  const _algorithm = parseAlgorithm(alg)
-
   return {
-    v: parseVersion(ucv, "ucv"),
+    typ: parseJWT(typ),
+    ucv: parseVersion(ucv, "ucv"),
+    alg: /** @type {string} */ (alg),
   }
 }
 
 /**
  * @template {UCAN.Capabilities} C
  * @param {string} input
+ * @returns {Omit<UCAN.Data<C>, "v">}
  */
 export const parsePayload = input => {
   /** @type {UCAN.Payload<C>} */
@@ -104,29 +107,12 @@ export const parseCapabilities = (input, context) =>
  * @param {object & {can?:unknown, with?:unknown}|C} input
  * @returns {C}
  */
-export const asCapability = input => {
-  const capability = /** @type {C} */ ({
+export const asCapability = input =>
+  /** @type {C} */ ({
     ...input,
     can: parseAbility(input.can),
     with: parseResource(input.with),
   })
-  const resource = capability.with
-
-  // @see https://github.com/ucan-wg/spec/#422-action
-  if (
-    resource.endsWith("*") &&
-    capability.can !== "*" &&
-    (resource.startsWith("my:") || resource.startsWith("as:did:"))
-  ) {
-    return ParseError.throw(
-      `Capability has invalid 'can: ${JSON.stringify(
-        input.can
-      )}', for all 'my:*' or 'as:<did>:*' it must be '*'.`
-    )
-  }
-
-  return capability
-}
 
 /**
  * @param {unknown} input
@@ -252,7 +238,21 @@ const parseProof = (input, context) => {
  */
 export const parseDID = (input, context) =>
   typeof input === "string" && input.startsWith("did:")
-    ? DID.parse(/** @type {UCAN.DID} */ (input))
+    ? DID.parse(input)
+    : ParseError.throw(
+        `DID has invalid representation '${context}: ${JSON.stringify(input)}'`
+      )
+
+/**
+ *
+ * @param {unknown} input
+ * @param {string} alg
+ * @param {string} context
+ */
+
+export const parseIssuer = (input, alg, context) =>
+  typeof input === "string" && input.startsWith("did:")
+    ? Object.assign(DID.parse(input), { signingAlgorithm: alg })
     : ParseError.throw(
         `DID has invalid representation '${context}: ${JSON.stringify(input)}'`
       )
@@ -318,22 +318,6 @@ const parseJWT = input =>
   input === "JWT"
     ? input
     : ParseError.throw(`Header has invalid type 'typ: "${input}"'`)
-
-/**
- * @param {unknown} input
- */
-const parseAlgorithm = input => {
-  switch (input) {
-    case "EdDSA":
-      return 0xed
-    case "RS256":
-      return 0x1205
-    default:
-      return ParseError.throw(
-        `Header has invalid algorithm 'alg: ${JSON.stringify(input)}'`
-      )
-  }
-}
 
 export class ParseError extends TypeError {
   get name() {

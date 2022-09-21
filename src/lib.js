@@ -155,7 +155,9 @@ export const issue = async ({
     s: EMPTY,
   })
 
-  const payload = UTF8.encode(Formatter.formatSignPayload(data))
+  const payload = UTF8.encode(
+    Formatter.formatSignPayload(data, issuer.signatureAlgorithm)
+  )
 
   const signature = await issuer.sign(payload)
   const model = { ...data, s: signature }
@@ -172,7 +174,9 @@ export const issue = async ({
 export const verifySignature = (ucan, verifier) =>
   formatDID(ucan.issuer) === verifier.did() &&
   verifier.verify(
-    UTF8.encode(Formatter.formatSignPayload(ucan.model)),
+    UTF8.encode(
+      Formatter.formatSignPayload(ucan.model, ucan.signature.algorithm)
+    ),
     ucan.signature
   )
 

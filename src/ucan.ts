@@ -2,10 +2,13 @@ import type {
   MultihashDigest,
   MultihashHasher,
 } from "multiformats/hashes/interface"
-import type { MultibaseEncoder } from "multiformats/bases/interface"
+import type {
+  MultibaseEncoder,
+  MultibaseDecoder,
+} from "multiformats/bases/interface"
 import type { code as RAW_CODE } from "multiformats/codecs/raw"
 import type { code as CBOR_CODE } from "@ipld/dag-cbor"
-import type * as Crypto from "./crypto.js"
+import * as Crypto from "./crypto.js"
 import type { Phantom, ByteView, ToString } from "./marker.js"
 import type { CID as MultiformatsCID } from "multiformats/cid"
 
@@ -14,7 +17,12 @@ export * from "./marker.js"
 
 export type Code = typeof CBOR_CODE | typeof RAW_CODE
 
-export type { MultihashDigest, MultibaseEncoder, MultihashHasher }
+export type {
+  MultihashDigest,
+  MultibaseEncoder,
+  MultibaseDecoder,
+  MultihashHasher,
+}
 
 /**
  * This utility type can be used in place of `T[]` where you
@@ -27,33 +35,44 @@ export type Tuple<T = unknown> = [T, ...T[]]
 /**
  * A string-encoded decentralized identity document (DID).
  */
-export type DID = `did:${string}`
+export type DID<Method extends string = string> = `did:${Method}:${string}`
 
 /**
  * DID object representation with a `did` accessor for the {@link DID}.
  */
-export interface Principal {
-  did(): DID
+export interface Principal<Method extends string = "key"> {
+  did(): DID<Method>
 }
 
 /**
  * A byte-encoded {@link DID} that provides a `did` accessor method (see {@link Principal}).
  */
-export interface DIDView extends ByteView<DID>, Principal {}
+export interface PrincipalView<Method extends string = string>
+  extends ByteView<Principal<Method>>,
+    Principal<Method> {}
 
 /**
- * Entity that can verify UCAN signatures against a {@link Principal} produced with the algorithm `A` (see {@link Crypto.Verifier}).
+ * Entity that can verify UCAN signatures against a {@link Principal} produced with the algorithm `A` (see {@link CryptoVerifier}).
  */
-export interface Verifier<A extends number = number>
-  extends Crypto.Verifier<A>,
-    Principal {}
+export interface Verifier<
+  Method extends string = string,
+  A extends number = number
+> extends Crypto.Verifier<A>,
+    Principal<Method> {}
 
+export interface Audience extends Principal<string> {}
+export interface Issuer extends Principal<string> {}
 /**
  * Entity that can sign UCANs with keys from a {@link Principal} using the signing algorithm A
  */
-export interface Issuer<A extends number = number>
-  extends Crypto.Signer<A>,
-    Principal {}
+export interface Signer<
+  Method extends string = string,
+  A extends number = number
+> extends Crypto.Signer<A>,
+    Principal<Method> {
+  signatureAlgorithm: string
+  signatureCode: number
+}
 
 /**
  * Verifiable facts and proofs of knowledge included in a UCAN {@link Payload} in order to
@@ -108,8 +127,8 @@ export type UCAN<C extends Capabilities = Capabilities> = Model<C> | JWT<C>
  */
 export interface Data<C extends Capabilities = Capabilities> {
   v: Version
-  iss: DIDView
-  aud: DIDView
+  iss: Issuer
+  aud: Audience
   att: C
   exp: number | null
   nbf?: number
@@ -149,8 +168,8 @@ export interface JWTView<C extends Capabilities = Capabilities>
 export interface UCANView<C extends Capabilities = Capabilities> {
   readonly model: Model<C>
 
-  readonly issuer: DIDView
-  readonly audience: DIDView
+  readonly issuer: PrincipalView<string>
+  readonly audience: PrincipalView<string>
 
   readonly version: Version
 
@@ -174,8 +193,8 @@ export interface UCANOptions<
   C extends Capabilities = Capabilities,
   A extends number = number
 > {
-  issuer: Issuer<A>
-  audience: Principal
+  issuer: Signer<string, A>
+  audience: Audience
   capabilities: C
   lifetimeInSeconds?: number
   expiration?: number
@@ -208,7 +227,10 @@ export type Link<
  * @template C - {@link Capability}
  * @template A - Multicodec code corresponding to the hashing algorithm of the {@link Link}
  */
-export interface Block<C extends Capabilities = Capabilities, A extends number = number> {
+export interface Block<
+  C extends Capabilities = Capabilities,
+  A extends number = number
+> {
   bytes: ByteView<UCAN<C>>
   cid: Link<C, A>
   data?: UCAN<C>
