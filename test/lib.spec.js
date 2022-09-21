@@ -18,6 +18,7 @@ import {
   formatUnsafe,
 } from "./util.js"
 import { sha256 } from "multiformats/hashes/sha2"
+import * as Signature from "../src/signature.js"
 
 describe("dag-ucan", () => {
   it("self-issued token", async () => {
@@ -391,6 +392,59 @@ describe("dag-ucan", () => {
       proofs: [],
     })
   })
+
+  it("issue by arbitrary did", async () => {
+    const signer = {
+      /**
+       * @returns {UCAN.DID}
+       */
+      did: () => "did:dns:alice.space",
+      /**
+       * @param {Uint8Array} payload
+       */
+      sign: payload => alice.sign(payload),
+      get signatureAlgorithm() {
+        return alice.signatureAlgorithm
+      },
+      get signatureCode() {
+        return alice.signatureCode
+      },
+    }
+
+    const ucan = await UCAN.issue({
+      issuer: signer,
+      audience: bob,
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "store/put",
+        },
+      ],
+    })
+
+    const [head, body, sig] = UCAN.format(ucan).split(".")
+    const payload = UTF8.encode(`${head}.${body}`)
+
+    assertUCAN(ucan, {
+      version: UCAN.VERSION,
+      issuer: DID.parse("did:dns:alice.space"),
+      audience: DID.parse(bob.did()),
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "store/put",
+        },
+      ],
+      notBefore: undefined,
+      nonce: undefined,
+      facts: [],
+      proofs: [],
+    })
+
+    assert.equal(await alice.verify(payload, ucan.signature), true)
+
+    assert.ok(ucan.expiration > UCAN.now())
+  })
 })
 
 describe("errors", () => {
@@ -417,26 +471,20 @@ describe("errors", () => {
     }
   })
 
-  it.skip("throws on bad did", async () => {
-    try {
-      await UCAN.issue({
-        issuer: alice,
-        audience: { did: () => "did:dns:ucan.storage" },
-        nonce: "hello",
-        capabilities: [
-          {
-            with: alice.did(),
-            can: "store/put",
-          },
-        ],
-      })
-      assert.fail("Should have thrown on bad did")
-    } catch (error) {
-      assert.match(
-        String(error),
-        /Invalid DID "did:dns:ucan\.storage", must start with 'did:key:'/
-      )
-    }
+  it("supports other DIDs", async () => {
+    const ucan = await UCAN.issue({
+      issuer: alice,
+      audience: { did: () => "did:dns:ucan.storage" },
+      nonce: "hello",
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "store/put",
+        },
+      ],
+    })
+
+    assert.equal(ucan.audience.did(), "did:dns:ucan.storage")
   })
 
   it("throws on unsupported algorithms", async () => {
@@ -604,7 +652,7 @@ describe("errors", () => {
               can: "*",
             },
           ],
-          s: new Uint8Array(),
+          s: Signature.create(Signature.EdDSA, new Uint8Array()),
           prf: [
             // @ts-expect-error
             "bafkreihgufl2d3wwp4kjo75na265sywwi3yqcx2xpk3rif4tlo62nscg4m",
@@ -631,7 +679,7 @@ describe("errors", () => {
               can: "*",
             },
           ],
-          s: new Uint8Array(),
+          s: Signature.create(Signature.EdDSA, new Uint8Array()),
           fct: [],
         },
       })
@@ -961,6 +1009,59 @@ describe("encode <-> decode", () => {
 
     assert.deepEqual(v2, UCAN.encode(v1))
   })
+
+  it("can contain facts", async () => {
+    const expected = await UCAN.issue({
+      issuer: alice,
+      audience: bob,
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "store/put",
+        },
+      ],
+      facts: [{ hello: "world" }],
+    })
+
+    const actual = UCAN.decode(UCAN.encode(expected))
+    assert.deepEqual(expected, actual)
+  })
+
+  it("can contain nonce", async () => {
+    const expected = await UCAN.issue({
+      issuer: alice,
+      audience: bob,
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "store/put",
+        },
+      ],
+      nonce: "nonsense ",
+    })
+
+    const actual = UCAN.decode(UCAN.encode(expected))
+    assert.deepEqual(expected, actual)
+  })
+
+  it("can contain notBefore", async () => {
+    const now = UCAN.now()
+    const expected = await UCAN.issue({
+      issuer: alice,
+      audience: bob,
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "store/put",
+        },
+      ],
+      notBefore: now + 10,
+      expiration: now + 120,
+    })
+
+    const actual = UCAN.decode(UCAN.encode(expected))
+    assert.deepEqual(expected, actual)
+  })
 })
 
 describe("ts-ucan compat", () => {
@@ -1065,7 +1166,7 @@ describe("api compatibility", () => {
 })
 
 describe("jwt representation", () => {
-  it.skip("can parse non cbor UCANs", async () => {
+  it("can parse non cbor UCANs", async () => {
     const jwt = UCAN.parse(JWT_UCAN)
     assert.equal(jwt.code, RAW.code)
 
