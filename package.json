@@ -70,6 +70,7 @@
     ]
   },
   "devDependencies": {
+    "@stablelib/ed25519": "^1.0.3",
     "@noble/ed25519": "^1.6.0",
     "@types/chai": "^4.3.0",
     "@types/mocha": "^9.1.0",

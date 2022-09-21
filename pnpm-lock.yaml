@@ -4,6 +4,7 @@ specifiers:
   '@ipld/dag-cbor': ^7.0.1
   '@ipld/dag-json': ^8.0.9
   '@noble/ed25519': ^1.6.0
+  '@stablelib/ed25519': ^1.0.3
   '@types/chai': ^4.3.0
   '@types/mocha': ^9.1.0
   '@web-std/fetch': ^4.0.0
@@ -24,6 +25,7 @@ dependencies:
 
 devDependencies:
   '@noble/ed25519': 1.7.0
+  '@stablelib/ed25519': 1.0.3
   '@types/chai': 4.3.3
   '@types/mocha': 9.1.1
   '@web-std/fetch': 4.1.0
