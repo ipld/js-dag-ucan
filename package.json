@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/ipld/js-dag-ucan",
   "scripts": {
+    "build": "tsc --build",
     "prepare": "tsc --build",
     "test:web": "playwright-test test/**/*.spec.js --cov && nyc report",
     "test:node": "c8 --check-coverage --branches 100 --functions 100 --lines 100 mocha test/**/*.spec.js",
@@ -44,6 +45,9 @@
       "did": [
         "dist/src/did"
       ],
+      "signature": [
+        "dist/src/signature"
+      ],
       "codec/*": [
         "dist/src/codec/*"
       ]
@@ -57,6 +61,10 @@
     "./did": {
       "types": "./dist/src/did.d.ts",
       "import": "./src/did.js"
+    },
+    "./signature": {
+      "types": "./dist/src/signature.d.ts",
+      "import": "./src/signature.js"
     },
     "./codec/*": {
       "types": "./dist/src/codec/*",

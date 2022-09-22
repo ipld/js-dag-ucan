@@ -12,7 +12,7 @@ import { format as formatDID } from "./did.js"
 export * from "./ucan.js"
 
 /** @type {UCAN.Version} */
-export const VERSION = "0.9.0"
+export const VERSION = "0.9.1"
 export const name = "dag-ucan"
 
 /** @type {typeof CBOR.code|typeof RAW.code} */

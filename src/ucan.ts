@@ -40,7 +40,7 @@ export type DID<Method extends string = string> = `did:${Method}:${string}`
 /**
  * DID object representation with a `did` accessor for the {@link DID}.
  */
-export interface Principal<Method extends string = "key"> {
+export interface Principal<Method extends string = string> {
   did(): DID<Method>
 }
 
@@ -71,7 +71,7 @@ export interface Signer<
 > extends Crypto.Signer<A>,
     Principal<Method> {
   signatureAlgorithm: string
-  signatureCode: number
+  signatureCode: A
 }
 
 /**

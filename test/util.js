@@ -82,7 +82,7 @@ class EdDSA {
     return "EdDSA"
   }
   get signatureCode() {
-    return 0xd0ed
+    return Signature.EdDSA
   }
 
   get keyType() {
