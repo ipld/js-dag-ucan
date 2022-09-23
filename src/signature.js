@@ -149,12 +149,12 @@ export const create = (code, raw) => {
 
   /** @type {Signature<T, A>} */
   const signature = new Signature(codeSize + rawSize + raw.byteLength)
-  varint.encodeTo(code, signature, 0)
+  varint.encodeTo(code, signature)
   varint.encodeTo(raw.byteLength, signature, codeSize)
   signature.set(raw, codeSize + rawSize)
   Object.defineProperties(signature, {
     code: { value: code },
-    size: { value: size },
+    size: { value: raw.byteLength },
   })
   return signature
 }

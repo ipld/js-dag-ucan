@@ -219,7 +219,7 @@ export const formatUnsafe = async (issuer, token) => {
     json.encode({
       typ: "JWT",
       alg: "EdDSA",
-      ucv: "0.9.0",
+      ucv: UCAN.VERSION,
       ...token.header,
     })
   )
