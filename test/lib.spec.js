@@ -3,11 +3,12 @@ import * as UCAN from "../src/lib.js"
 import { assert } from "chai"
 import { alice, bob, mallory, JWT_UCAN, JWT_UCAN_SIG } from "./fixtures.js"
 import * as TSUCAN from "./ts-ucan.cjs"
-import * as RAW from "../src/codec/raw.js"
 import * as CBOR from "../src/codec/cbor.js"
+import * as RAW from "multiformats/codecs/raw"
 import * as UTF8 from "../src/utf8.js"
 import * as DID from "../src/did.js"
 import { identity } from "multiformats/hashes/identity"
+import { base64url } from "multiformats/bases/base64"
 import {
   decodeAuthority,
   createRSAIssuer,
@@ -17,6 +18,7 @@ import {
   formatUnsafe,
 } from "./util.js"
 import { sha256 } from "multiformats/hashes/sha2"
+import * as Signature from "../src/signature.js"
 
 describe("dag-ucan", () => {
   it("self-issued token", async () => {
@@ -260,6 +262,189 @@ describe("dag-ucan", () => {
       })
     )
   })
+
+  it("permanent delegation", async () => {
+    const delegation = await UCAN.issue({
+      issuer: alice,
+      audience: bob,
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "*",
+        },
+      ],
+      expiration: Infinity,
+    })
+
+    assertUCAN(delegation, {
+      version: UCAN.VERSION,
+      issuer: DID.parse(alice.did()),
+      audience: DID.parse(bob.did()),
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "*",
+        },
+      ],
+      facts: [],
+      notBefore: undefined,
+      expiration: Infinity,
+      nonce: undefined,
+      proofs: [],
+    })
+
+    assert.equal(delegation.model.exp, null)
+  })
+
+  it("permanent delegation with null", async () => {
+    const delegation = await UCAN.issue({
+      issuer: alice,
+      audience: bob,
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "*",
+        },
+      ],
+      // @ts-expect-error - expects Infinity instead
+      expiration: null,
+    })
+
+    assertUCAN(delegation, {
+      version: UCAN.VERSION,
+      issuer: DID.parse(alice.did()),
+      audience: DID.parse(bob.did()),
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "*",
+        },
+      ],
+      facts: [],
+      notBefore: undefined,
+      expiration: Infinity,
+      nonce: undefined,
+      proofs: [],
+    })
+
+    assert.equal(delegation.model.exp, null)
+  })
+
+  it("can delegate namespace", async () => {
+    const delegation = await UCAN.issue({
+      issuer: alice,
+      audience: bob,
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "account/*",
+        },
+      ],
+      expiration: Infinity,
+    })
+
+    assertUCAN(delegation, {
+      version: UCAN.VERSION,
+      issuer: DID.parse(alice.did()),
+      audience: DID.parse(bob.did()),
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "account/*",
+        },
+      ],
+      facts: [],
+      notBefore: undefined,
+      expiration: Infinity,
+      nonce: undefined,
+      proofs: [],
+    })
+  })
+
+  it("can use did:web", async () => {
+    const expiration = UCAN.now() + 120
+    const delegation = await UCAN.issue({
+      issuer: alice,
+      audience: DID.parse("did:dns:web3.storage"),
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "store/list",
+        },
+      ],
+      expiration,
+    })
+
+    assertUCAN(delegation, {
+      version: UCAN.VERSION,
+      issuer: DID.parse(alice.did()),
+      audience: DID.parse("did:dns:web3.storage"),
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "store/list",
+        },
+      ],
+      facts: [],
+      notBefore: undefined,
+      expiration,
+      nonce: undefined,
+      proofs: [],
+    })
+  })
+
+  it("issue by arbitrary did", async () => {
+    const signer = {
+      /**
+       * @returns {UCAN.DID}
+       */
+      did: () => "did:dns:alice.space",
+      /**
+       * @param {Uint8Array} payload
+       */
+      sign: payload => alice.sign(payload),
+      get signatureAlgorithm() {
+        return alice.signatureAlgorithm
+      },
+      get signatureCode() {
+        return alice.signatureCode
+      },
+    }
+
+    const ucan = await UCAN.issue({
+      issuer: signer,
+      audience: bob,
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "store/put",
+        },
+      ],
+    })
+
+    const [head, body, sig] = UCAN.format(ucan).split(".")
+    const payload = UTF8.encode(`${head}.${body}`)
+
+    assertUCAN(ucan, {
+      version: UCAN.VERSION,
+      issuer: DID.parse("did:dns:alice.space"),
+      audience: DID.parse(bob.did()),
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "store/put",
+        },
+      ],
+      notBefore: undefined,
+      nonce: undefined,
+      facts: [],
+      proofs: [],
+    })
+
+    assert.equal(await alice.verify(payload, ucan.signature), true)
+
+    assert.ok(ucan.expiration > UCAN.now())
+  })
 })
 
 describe("errors", () => {
@@ -286,26 +471,20 @@ describe("errors", () => {
     }
   })
 
-  it("throws on bad did", async () => {
-    try {
-      await UCAN.issue({
-        issuer: alice,
-        audience: { did: () => "did:dns:ucan.storage" },
-        nonce: "hello",
-        capabilities: [
-          {
-            with: alice.did(),
-            can: "store/put",
-          },
-        ],
-      })
-      assert.fail("Should have thrown on bad did")
-    } catch (error) {
-      assert.match(
-        String(error),
-        /Invalid DID "did:dns:ucan\.storage", must start with 'did:key:'/
-      )
-    }
+  it("supports other DIDs", async () => {
+    const ucan = await UCAN.issue({
+      issuer: alice,
+      audience: { did: () => "did:dns:ucan.storage" },
+      nonce: "hello",
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "store/put",
+        },
+      ],
+    })
+
+    assert.equal(ucan.audience.did(), "did:dns:ucan.storage")
   })
 
   it("throws on unsupported algorithms", async () => {
@@ -329,7 +508,7 @@ describe("errors", () => {
       console.log("🚀 ~ file: lib.spec.js ~ line 329 ~ it ~ error", error)
       assert.match(
         String(error),
-        /Unsupported key algorithm with multicode 0x1/
+        /Unsupported DID encoding, unknown multicode 0x1/
       )
     }
   })
@@ -352,10 +531,7 @@ describe("errors", () => {
       })
       assert.fail("Should have thrown on bad did")
     } catch (error) {
-      assert.match(
-        String(error),
-        /Only p256-pub compressed is supported./
-      )
+      assert.match(String(error), /Only p256-pub compressed is supported./)
     }
   })
 
@@ -364,8 +540,7 @@ describe("errors", () => {
     const ucan = await UCAN.issue({
       issuer: alice,
       audience: {
-        did: () =>
-          did,
+        did: () => did,
       },
       nonce: "hello",
       capabilities: [
@@ -399,21 +574,6 @@ describe("errors", () => {
       { with: alice.did(), can: "/send" },
       /Capability has invalid 'can: "\/send"', value must have at least one path segment/,
     ],
-    "with my:* it must have can: *": [
-      {
-        with: "my:*",
-        can: "msg/send",
-      },
-      /Capability has invalid 'can: "msg\/send"', for all 'my:\*' or 'as:<did>:\*' it must be '\*'/,
-    ],
-    "with as:<did>:* must have can: *": [
-      {
-        // @ts-ignore
-        with: `as:${alice.did()}:*`,
-        can: "msg/send",
-      },
-      /Capability has invalid 'can: "msg\/send"', for all 'my:\*' or 'as:<did>:\*' it must be '\*'/,
-    ],
 
     "with must be string": [
       // @ts-expect-error
@@ -438,7 +598,6 @@ describe("errors", () => {
     ],
     "with as:<did>:* may have can: *": [
       {
-        // @ts-ignore
         with: `as:${alice.did()}:*`,
         can: "*",
       },
@@ -481,22 +640,25 @@ describe("errors", () => {
   it("proofs must be CIDs", () => {
     assert.throws(() => {
       UCAN.encode({
-        version: "0.8.1",
-        issuer: DID.parse(alice.did()),
-        audience: DID.parse(bob.did()),
-        expiration: Date.now(),
-        capabilities: [
-          {
-            with: "my:*",
-            can: "*",
-          },
-        ],
-        signature: new Uint8Array(),
-        proofs: [
-          // @ts-expect-error
-          "bafkreihgufl2d3wwp4kjo75na265sywwi3yqcx2xpk3rif4tlo62nscg4m",
-        ],
-        facts: [],
+        code: CBOR.code,
+        model: {
+          v: "0.8.1",
+          iss: DID.parse(alice.did()),
+          aud: DID.parse(bob.did()),
+          exp: Date.now(),
+          att: [
+            {
+              with: "my:*",
+              can: "*",
+            },
+          ],
+          s: Signature.create(Signature.EdDSA, new Uint8Array()),
+          prf: [
+            // @ts-expect-error
+            "bafkreihgufl2d3wwp4kjo75na265sywwi3yqcx2xpk3rif4tlo62nscg4m",
+          ],
+          fct: [],
+        },
       })
     }, /Expected proofs\[0\] to be CID, instead got "bafkr/)
   })
@@ -504,19 +666,22 @@ describe("errors", () => {
   it("proofs must be CIDs", () => {
     assert.throws(() => {
       UCAN.encode({
-        version: "0.8.1",
-        issuer: DID.parse(alice.did()),
-        // @ts-expect-error
-        audience: bob.did(),
-        expiration: Date.now(),
-        capabilities: [
-          {
-            with: "my:*",
-            can: "*",
-          },
-        ],
-        signature: new Uint8Array(),
-        facts: [],
+        code: CBOR.code,
+        model: {
+          v: "0.8.1",
+          iss: DID.parse(alice.did()),
+          // @ts-expect-error
+          aud: bob.did(),
+          exp: Date.now(),
+          att: [
+            {
+              with: "my:*",
+              can: "*",
+            },
+          ],
+          s: Signature.create(Signature.EdDSA, new Uint8Array()),
+          fct: [],
+        },
       })
     }, /Expected audience to be Uint8Array, instead got "did:key/)
   })
@@ -545,22 +710,25 @@ describe("errors", () => {
   it("signature must be Uint8Array", () => {
     assert.throws(() => {
       UCAN.encode({
-        version: "0.8.1",
-        issuer: DID.parse(alice.did()),
-        audience: DID.parse(bob.did()),
-        expiration: Date.now(),
-        capabilities: [
-          {
-            with: "my:*",
-            can: "*",
-          },
-        ],
-        // @ts-expect-error
-        signature: "hello world",
-        facts: [],
-        proofs: [],
+        code: CBOR.code,
+        model: {
+          v: "0.8.1",
+          iss: DID.parse(alice.did()),
+          aud: DID.parse(bob.did()),
+          exp: Date.now(),
+          att: [
+            {
+              with: "my:*",
+              can: "*",
+            },
+          ],
+          // @ts-expect-error
+          s: "hello world",
+          fct: [],
+          prf: [],
+        },
       })
-    }, /signature must be Uint8Array, instead got "hello world"/)
+    }, /Can only decode Uint8Array into a Signature, instead got "hello world"/)
   })
 })
 
@@ -648,7 +816,7 @@ describe("parse", () => {
   it("errors on invalid alg", async () => {
     const jwt = await formatUnsafe(alice, {
       header: {
-        alg: alice.keyType,
+        alg: "whatever",
       },
       body: {
         att: [
@@ -660,10 +828,14 @@ describe("parse", () => {
       },
     })
 
-    assert.throws(
-      () => UCAN.parse(jwt),
-      /Header has invalid algorithm 'alg: "ed25519"'/
+    const ucan = UCAN.parse(jwt)
+    assert.equal(ucan.signature.algorithm, "whatever")
+    assert.equal(ucan.signature.code, 0xd000)
+    assert.equal(
+      jwt.endsWith(`.${base64url.baseEncode(ucan.signature.raw)}`),
+      true
     )
+    assert.equal(ucan.issuer.did(), alice.did())
   })
 
   it("errors on invalid typ", async () => {
@@ -822,17 +994,73 @@ describe("encode <-> decode", () => {
       ],
     })
 
-    // @ts-expect-error - leaving out proofs and facts
     const v2 = UCAN.encode({
-      version: v1.version,
-      issuer: v1.issuer,
-      audience: v1.audience,
-      expiration: v1.expiration,
-      capabilities: [...v1.capabilities],
-      signature: v1.signature,
+      code: CBOR.code,
+      // @ts-expect-error - leaving out proofs and facts
+      model: {
+        v: v1.version,
+        iss: v1.issuer,
+        aud: v1.audience,
+        exp: v1.expiration,
+        att: [...v1.capabilities],
+        s: v1.signature,
+      },
     })
 
     assert.deepEqual(v2, UCAN.encode(v1))
+  })
+
+  it("can contain facts", async () => {
+    const expected = await UCAN.issue({
+      issuer: alice,
+      audience: bob,
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "store/put",
+        },
+      ],
+      facts: [{ hello: "world" }],
+    })
+
+    const actual = UCAN.decode(UCAN.encode(expected))
+    assert.deepEqual(expected, actual)
+  })
+
+  it("can contain nonce", async () => {
+    const expected = await UCAN.issue({
+      issuer: alice,
+      audience: bob,
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "store/put",
+        },
+      ],
+      nonce: "nonsense ",
+    })
+
+    const actual = UCAN.decode(UCAN.encode(expected))
+    assert.deepEqual(expected, actual)
+  })
+
+  it("can contain notBefore", async () => {
+    const now = UCAN.now()
+    const expected = await UCAN.issue({
+      issuer: alice,
+      audience: bob,
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "store/put",
+        },
+      ],
+      notBefore: now + 10,
+      expiration: now + 120,
+    })
+
+    const actual = UCAN.decode(UCAN.encode(expected))
+    assert.deepEqual(expected, actual)
   })
 })
 
@@ -842,7 +1070,7 @@ describe("ts-ucan compat", () => {
     const ucan = UCAN.parse(jwt)
 
     assertUCAN(ucan, {
-      version: UCAN.VERSION,
+      version: "0.8.1",
       issuer: DID.parse(alice.did()),
       audience: DID.parse(bob.did()),
       facts: [],
@@ -882,7 +1110,7 @@ describe("ts-ucan compat", () => {
 
     const ucan = UCAN.parse(leaf)
     assertUCAN(ucan, {
-      version: UCAN.VERSION,
+      version: "0.8.1",
       issuer: DID.parse(bob.did()),
       audience: DID.parse(mallory.did()),
       facts: [],
@@ -930,7 +1158,7 @@ describe("api compatibility", () => {
       hasher: sha256,
     })
 
-    const { cid, bytes } = await UCAN.write(ucan, {hasher: sha256})
+    const { cid, bytes } = await UCAN.write(ucan, { hasher: sha256 })
     assert.deepEqual(block.cid, cid)
     assert.deepEqual(block.bytes, bytes)
     assert.deepEqual(block.value, ucan)
@@ -940,7 +1168,7 @@ describe("api compatibility", () => {
 describe("jwt representation", () => {
   it("can parse non cbor UCANs", async () => {
     const jwt = UCAN.parse(JWT_UCAN)
-    assert.ok(jwt instanceof Uint8Array)
+    assert.equal(jwt.code, RAW.code)
 
     assertUCAN(jwt, {
       issuer: DID.parse(alice.did()),
@@ -967,7 +1195,7 @@ describe("jwt representation", () => {
 
   it("can encode non cbor UCANs", () => {
     const jwt = UCAN.parse(JWT_UCAN)
-    assert.ok(jwt instanceof Uint8Array)
+    assert.equal(jwt.code, RAW.code)
 
     const bytes = UCAN.encode(jwt)
     const jwt2 = assert.equal(JWT_UCAN, UCAN.format(UCAN.decode(bytes)))
@@ -981,14 +1209,16 @@ describe("jwt representation", () => {
         {
           can: "access/identify",
           with: "did:key:*",
-          as: "mailto:*",
+          nb: {
+            as: "mailto:*",
+          },
         },
       ],
     })
 
     const token = UCAN.format(ucan)
     const cbor = UCAN.parse(token)
-    const jwt = RAW.decode(UTF8.encode(token))
+    const jwt = UCAN.decode(UTF8.encode(token))
 
     assert.equal(cbor instanceof Uint8Array, false)
     assertUCAN(cbor, {
@@ -998,14 +1228,14 @@ describe("jwt representation", () => {
         {
           can: "access/identify",
           with: "did:key:*",
-          as: "mailto:*",
+          nb: { as: "mailto:*" },
         },
       ],
       expiration: ucan.expiration,
       signature: ucan.signature,
     })
 
-    assert.equal(jwt instanceof Uint8Array, true)
+    assert.equal(jwt.code, RAW.code)
     assertUCAN(jwt, {
       issuer: DID.parse(alice.did()),
       audience: DID.parse(bob.did()),
@@ -1013,7 +1243,7 @@ describe("jwt representation", () => {
         {
           can: "access/identify",
           with: "did:key:*",
-          as: "mailto:*",
+          nb: { as: "mailto:*" },
         },
       ],
       expiration: ucan.expiration,

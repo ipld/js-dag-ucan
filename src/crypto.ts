@@ -35,8 +35,13 @@ export interface Signer<A extends number = number> {
  * for a cryptographic signing algorithm
  */
 export interface Signature<T = unknown, A extends number = number>
-  extends ByteView<T> {
-  algorithm?: A
+  extends ByteView<Signature<T, A>> {
+  code: A
+  algorithm: string
+  /**
+   * Raw signature (without a signature algorithm info)
+   */
+  raw: Uint8Array
 }
 
 /**
