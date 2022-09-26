@@ -1,5 +1,16 @@
 # Changelog
 
+## [4.0.0-beta](https://github.com/ipld/js-dag-ucan/compare/v3.0.0-beta...v4.0.0-beta) (2022-09-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* 0.9 spec (#57)
+
+### Features
+
+* 0.9 spec ([#57](https://github.com/ipld/js-dag-ucan/issues/57)) ([873845a](https://github.com/ipld/js-dag-ucan/commit/873845a802d8faa503eb4754e5a6674947dcf184))
+
 ## [3.0.0-beta](https://github.com/ipld/js-dag-ucan/compare/v2.0.0-beta...v3.0.0-beta) (2022-09-12)
 
 
