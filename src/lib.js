@@ -6,7 +6,7 @@ import * as View from "./view.js"
 import * as Parser from "./parser.js"
 import * as Formatter from "./formatter.js"
 import { sha256 } from "multiformats/hashes/sha2"
-import { CID } from "multiformats/cid"
+import { create as createIPLDLink } from "multiformats/link"
 import { format as formatDID } from "./did.js"
 
 export * from "./ucan.js"
@@ -15,8 +15,15 @@ export * from "./ucan.js"
 export const VERSION = "0.9.1"
 export const name = "dag-ucan"
 
-/** @type {typeof CBOR.code|typeof RAW.code} */
-export const code = CBOR.code
+export const code = /** @type {typeof CBOR.code|typeof RAW.code} */ (CBOR.code)
+
+/**
+ * We cast sha256 to workaround typescripts limited inference problem when using
+ * sha256 as default. If hasher is omitted type `A` should match shar256.code
+ * but TS fails to deduce that.
+ * @type {UCAN.MultihashHasher<any>}
+ */
+const defaultHasher = sha256
 
 /**
  * Encodes given UCAN (in either IPLD or JWT representation) and encodes it into
@@ -65,19 +72,24 @@ export const link = async (ucan, options) => {
 
 /**
  * @template {UCAN.Capabilities} C
- * @template {number} [A=number] - Multihash code
+ * @template {number} [A=typeof sha256.code] - Multihash code
  * @param {UCAN.View<C>} ucan
- * @param {{hasher?: UCAN.MultihashHasher<A>}} [options]
- * @returns {Promise<UCAN.Block<C, A>>}
+ * @param {{hasher?: UCAN.MultihashHasher<A>}} options
+ * @returns {Promise<UCAN.Block<C, typeof code, A>>}
  */
-export const write = async (ucan, options) => {
-  const hasher = options?.hasher || sha256
+export const write = async (ucan, { hasher = defaultHasher } = {}) => {
+  /** @type {UCAN.ByteView<UCAN.UCAN<C>>} */
   const bytes = ucan.code === RAW.code ? ucan.bytes : CBOR.encode(ucan.model)
-
-  const cid = /** @type {UCAN.Link<C, A>} */ (
-    CID.createV1(ucan.code, await hasher.digest(bytes))
+  const digest = await hasher.digest(bytes)
+  const link = /** @type {UCAN.Link<C, typeof code, A>} */ (
+    createIPLDLink(ucan.code, digest)
   )
-  return { cid, bytes, data: ucan.model }
+
+  return {
+    bytes,
+    cid: link,
+    data: ucan.model,
+  }
 }
 
 /**
