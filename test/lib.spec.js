@@ -1158,7 +1158,6 @@ describe("api compatibility", () => {
       hasher: sha256,
     })
 
-    block.bytes
 
     const { cid, bytes } = await UCAN.write(ucan, { hasher: sha256 })
     assert.deepEqual(cid, block.cid)
