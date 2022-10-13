@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.0.0](https://github.com/ipld/js-dag-ucan/compare/v4.0.0-beta...v1.0.0) (2022-10-13)
+
+
+### Features
+
+* upgrade to multiformat@10.0 ([#60](https://github.com/ipld/js-dag-ucan/issues/60)) ([94c6bd6](https://github.com/ipld/js-dag-ucan/commit/94c6bd6534ec5ecd85417aaa8528399dfb1c5fb2))
+* version 1.0 ([3473416](https://github.com/ipld/js-dag-ucan/commit/3473416ffff67b63854e1cefe630aa4d7a69a4ac))
+
+
+### Miscellaneous Chores
+
+* release 1.0.0 ([6596b83](https://github.com/ipld/js-dag-ucan/commit/6596b83d16e01d1e31a42d6b22d4b6123d9b5c76))
+
 ## [4.0.0-beta](https://github.com/ipld/js-dag-ucan/compare/v3.0.0-beta...v4.0.0-beta) (2022-09-26)
 
 
