@@ -1,16 +1,16 @@
 import type {
-  MultihashDigest,
-  MultihashHasher,
-} from "multiformats/hashes/interface"
-import type {
+  Link as IPLDLink,
+  Version as LinkVersion,
   MultibaseEncoder,
   MultibaseDecoder,
-} from "multiformats/bases/interface"
+  MultihashDigest,
+  MultihashHasher,
+  Block as IPLDBlock,
+} from "multiformats"
 import type { code as RAW_CODE } from "multiformats/codecs/raw"
 import type { code as CBOR_CODE } from "@ipld/dag-cbor"
 import * as Crypto from "./crypto.js"
 import type { Phantom, ByteView, ToString } from "./marker.js"
-import type { CID as MultiformatsCID } from "multiformats/cid"
 
 export * from "./crypto.js"
 export * from "./marker.js"
@@ -207,32 +207,30 @@ export interface UCANOptions<
 }
 
 /**
- * Represents a UCAN {@link IPLDLink} in either IPLD or JWT format
+ * Represents an IPLD link to a UCAN in either IPLD or JWT format
  *
  * @template Cap - {@link Capability}
  * @template Alg - multicodec code corresponding to the hashing algorithm of the CID
  */
-export type Link<
-  Cap extends Capabilities = Capabilities,
-  Alg extends number = number
-> =
-  | IPLDLink<Model<Cap>, typeof CBOR_CODE, Alg>
-  | IPLDLink<JWT<Cap>, typeof RAW_CODE, Alg>
+export interface Link<
+  C extends Capabilities = Capabilities,
+  F extends Code = Code,
+  A extends number = number
+> extends IPLDLink<UCAN<C>, F, A> {}
 
 /**
  * Represents a UCAN IPLD block
  *
  * Note: once we change the Capability generic to an array we can merge this with ucanto transport block
  *
- * @template C - {@link Capability}
+ * @template C - {@link Capabilities}
  * @template A - Multicodec code corresponding to the hashing algorithm of the {@link Link}
  */
 export interface Block<
   C extends Capabilities = Capabilities,
+  F extends Code = Code,
   A extends number = number
-> {
-  bytes: ByteView<UCAN<C>>
-  cid: Link<C, A>
+> extends IPLDBlock<UCAN<C>, F, A> {
   data?: UCAN<C>
 }
 
@@ -264,36 +262,3 @@ export interface Capability<
 }
 
 export type Capabilities = Tuple<Capability>
-
-export type CIDVersion = 0 | 1
-
-/**
- * Represents an IPLD link to a specific data of type `T`.
- *
- * Note: this extends MultiformatsCID until multiformats 10 is shipped
- *
- * @template Data - Logical type of the data being linked to.
- * @template Format - multicodec code corresponding to a codec linked data is encoded with
- * @template Alg - multicodec code corresponding to the hashing algorithm of the CID
- * @template V - CID version
- */
-export interface IPLDLink<
-  Data extends unknown = unknown,
-  Format extends number = number,
-  Alg extends number = number,
-  V extends CIDVersion = 1
-> extends Phantom<Data>,
-    MultiformatsCID {
-  readonly version: V
-  readonly code: Format
-  readonly multihash: MultihashDigest<Alg>
-
-  readonly byteOffset: number
-  readonly byteLength: number
-  readonly bytes: ByteView<IPLDLink<Data, Format, Alg, V>>
-
-  equals(other: unknown): other is IPLDLink<Data, Format, Alg, CIDVersion>
-  toString<Prefix extends string>(
-    base?: MultibaseEncoder<Prefix>
-  ): ToString<IPLDLink<Data, Format, Alg, CIDVersion>, Prefix>
-}
