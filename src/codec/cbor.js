@@ -1,12 +1,30 @@
 import * as UCAN from "../ucan.js"
 import * as CBOR from "@ipld/dag-cbor"
-import * as Parser from "../parser.js"
+import { readPayload, readVersion, readSignature } from "../schema.js"
+import { format } from "../formatter.js"
 import * as Signature from "../signature.js"
-import * as DID from "../did.js"
-import { CID } from "multiformats/cid"
+import { View } from "../view.js"
 
 export const name = "dag-ucan"
 export const code = CBOR.code
+
+/**
+ * Creates a UCAN view from the underlying data model. Please note that this
+ * function does no verification of the model and it is callers responsibility
+ * to ensure that:
+ *
+ * 1. Data model is correct contains all the field etc...
+ * 2. Payload of the signature will match paylodad when model is serialized
+ *    with DAG-JSON.
+ *
+ * In other words you should never use this function unless you've parsed or
+ * decoded a valid UCAN and want to wrap it into a view.
+ *
+ * @template {UCAN.Capabilities} C
+ * @param {UCAN.FromModel<C>} model
+ * @returns {UCAN.View<C>}
+ */
+export const from = model => new CBORView(model)
 
 /**
  * Encodes given UCAN (in either IPLD or JWT representation) and encodes it into
@@ -18,15 +36,34 @@ export const code = CBOR.code
  * @returns {UCAN.ByteView<UCAN.Model<C>>}
  */
 export const encode = model => {
-  const { fct, nnc, nbf, ...rest } = match(model)
+  const { fct, nnc, nbf, ...payload } = readPayload(model)
+
   return CBOR.encode({
-    ...rest,
     // leave out optionals unless they are set
     ...(fct.length > 0 && { fct }),
-    ...(model.nnc && { nnc }),
-    ...(model.nbf && { nbf: model.nbf }),
-    s: Signature.encode(model.s),
+    ...(nnc != null && { nnc }),
+    ...(nbf && { nbf }),
+    ...payload,
+    // add version and signature
+    v: readVersion(model.v, "v"),
+    s: encodeSignature(model.s, "s"),
   })
+}
+
+/**
+ * @param {UCAN.Signature} signature
+ * @param {string} context
+ */
+const encodeSignature = (signature, context) => {
+  try {
+    return Signature.encode(signature)
+  } catch (cause) {
+    throw new Error(
+      `Expected signature ${context}, instead got ${JSON.stringify(signature)}`,
+      // @ts-expect-error - types don't know about second arg
+      { cause }
+    )
+  }
 }
 
 /**
@@ -35,57 +72,32 @@ export const encode = model => {
  *
  * @template {UCAN.Capabilities} C
  * @param {UCAN.ByteView<UCAN.Model<C>>} bytes
- * @returns {UCAN.Model<C>}
+ * @returns {UCAN.View<C>}
  */
 export const decode = bytes => {
+  /** @type {Record<string, unknown>} */
   const model = CBOR.decode(bytes)
-  return {
-    ...match(model),
-    s: Signature.decode(model.s),
-  }
+  return new CBORView({
+    ...readPayload(model),
+    v: readVersion(model.v, "v"),
+    s: readSignature(model.s),
+  })
 }
 
-/**
- * @template {UCAN.Capabilities} C
- * @param {{[key in PropertyKey]: unknown}|UCAN.Model<C>} data
- * @returns {UCAN.Data<C>}
- */
-export const match = data => ({
-  v: Parser.parseVersion(data.v, "version"),
-  iss: parseDID(data.iss, "issuer"),
-  aud: parseDID(data.aud, "audience"),
-  att: /** @type {C} */ (Parser.parseCapabilities(data.att, "capabilities")),
-  exp: Parser.parseExpiry(
-    data.exp === Infinity ? null : data.exp,
-    "expiration"
-  ),
-  prf: Parser.parseOptionalArray(data.prf, parseProof, "proofs") || [],
-  nnc: Parser.parseOptionalString(data.nnc, "nonce"),
-  fct: Parser.parseOptionalArray(data.fct, Parser.parseFact, "facts") || [],
-  nbf: Parser.parseOptionalInt(data.nbf, "notBefore"),
-})
+export { format }
 
 /**
  * @template {UCAN.Capabilities} C
- * @param {unknown} cid
- * @param {string} context
+ * @extends {View<C>}
  */
-const parseProof = (cid, context) =>
-  /** @type {UCAN.Link<C>} */ (CID.asCID(cid)) ||
-  Parser.ParseError.throw(
-    `Expected ${context} to be CID, instead got ${JSON.stringify(cid)}`
-  )
-
-/**
- *
- * @param {unknown} input
- * @param {string} context
- */
-const parseDID = (input, context) =>
-  input instanceof Uint8Array
-    ? DID.decode(input)
-    : Parser.ParseError.throw(
-        `Expected ${context} to be Uint8Array, instead got ${JSON.stringify(
-          input
-        )}`
-      )
+class CBORView extends View {
+  get code() {
+    return code
+  }
+  format() {
+    return format(this.model)
+  }
+  encode() {
+    return encode(this.model)
+  }
+}

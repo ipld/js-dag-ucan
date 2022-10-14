@@ -235,5 +235,7 @@ export const formatUnsafe = async (issuer, token) => {
     })
   )
   const signature = await issuer.sign(UTF8.encode(`${header}.${body}`))
-  return `${header}.${body}.${base64url.baseEncode(signature.raw)}`
+  return /** @type {UCAN.JWT<any>} */ (
+    `${header}.${body}.${base64url.baseEncode(signature.raw)}`
+  )
 }

@@ -464,10 +464,7 @@ describe("errors", () => {
       })
       assert.fail("Should have thrown on bad did")
     } catch (error) {
-      assert.match(
-        String(error),
-        /The audience.did\(\) must be a function that returns DID/
-      )
+      assert.match(String(error), /audience.did/)
     }
   })
 
@@ -640,50 +637,44 @@ describe("errors", () => {
   it("proofs must be CIDs", () => {
     assert.throws(() => {
       UCAN.encode({
-        code: CBOR.code,
-        model: {
-          v: "0.8.1",
-          iss: DID.parse(alice.did()),
-          aud: DID.parse(bob.did()),
-          exp: Date.now(),
-          att: [
-            {
-              with: "my:*",
-              can: "*",
-            },
-          ],
-          s: Signature.create(Signature.EdDSA, new Uint8Array()),
-          prf: [
-            // @ts-expect-error
-            "bafkreihgufl2d3wwp4kjo75na265sywwi3yqcx2xpk3rif4tlo62nscg4m",
-          ],
-          fct: [],
-        },
+        v: "0.8.1",
+        iss: DID.parse(alice.did()),
+        aud: DID.parse(bob.did()),
+        exp: Date.now(),
+        att: [
+          {
+            with: "my:*",
+            can: "*",
+          },
+        ],
+        s: Signature.create(Signature.EdDSA, new Uint8Array()),
+        prf: [
+          // @ts-expect-error
+          "bafkreihgufl2d3wwp4kjo75na265sywwi3yqcx2xpk3rif4tlo62nscg4m",
+        ],
+        fct: [],
       })
-    }, /Expected proofs\[0\] to be CID, instead got "bafkr/)
+    }, /Expected prf\[0\] to be IPLD link, instead got "bafkr/)
   })
 
   it("proofs must be CIDs", () => {
     assert.throws(() => {
       UCAN.encode({
-        code: CBOR.code,
-        model: {
-          v: "0.8.1",
-          iss: DID.parse(alice.did()),
-          // @ts-expect-error
-          aud: bob.did(),
-          exp: Date.now(),
-          att: [
-            {
-              with: "my:*",
-              can: "*",
-            },
-          ],
-          s: Signature.create(Signature.EdDSA, new Uint8Array()),
-          fct: [],
-        },
+        v: "0.8.1",
+        iss: DID.parse(alice.did()),
+        // @ts-expect-error
+        aud: bob.did(),
+        exp: Date.now(),
+        att: [
+          {
+            with: "my:*",
+            can: "*",
+          },
+        ],
+        s: Signature.create(Signature.EdDSA, new Uint8Array()),
+        fct: [],
       })
-    }, /Expected audience to be Uint8Array, instead got "did:key/)
+    }, /Expected aud to be Uint8Array, instead got "did:key/)
   })
 
   it("expiration must be int", async () => {
@@ -700,35 +691,29 @@ describe("errors", () => {
         ],
       })
     } catch (error) {
-      assert.match(
-        String(error),
-        /Expected integer but instead got 'expiration: 8.7'/
-      )
+      assert.match(String(error), /Expected exp to be integer, instead got 8.7/)
     }
   })
 
   it("signature must be Uint8Array", () => {
     assert.throws(() => {
       UCAN.encode({
-        code: CBOR.code,
-        model: {
-          v: "0.8.1",
-          iss: DID.parse(alice.did()),
-          aud: DID.parse(bob.did()),
-          exp: Date.now(),
-          att: [
-            {
-              with: "my:*",
-              can: "*",
-            },
-          ],
-          // @ts-expect-error
-          s: "hello world",
-          fct: [],
-          prf: [],
-        },
+        v: "0.8.1",
+        iss: DID.parse(alice.did()),
+        aud: DID.parse(bob.did()),
+        exp: Date.now(),
+        att: [
+          {
+            with: "my:*",
+            can: "*",
+          },
+        ],
+        // @ts-expect-error
+        s: "hello world",
+        fct: [],
+        prf: [],
       })
-    }, /Can only decode Uint8Array into a Signature, instead got "hello world"/)
+    }, /Expected signature s, instead got "hello world"/)
   })
 })
 
@@ -810,7 +795,10 @@ describe("parse", () => {
       },
     })
 
-    assert.throws(() => UCAN.parse(jwt), /nbf has invalid value "tomorrow"/)
+    assert.throws(
+      () => UCAN.parse(jwt),
+      /Expected nbf to be integer, instead got "tomorrow"/
+    )
   })
 
   it("errors on invalid alg", async () => {
@@ -855,7 +843,7 @@ describe("parse", () => {
 
     assert.throws(
       () => UCAN.parse(jwt),
-      /Header has invalid type 'typ: "IPLD"'/
+      /Expected typ to be a "JWT" instead got "IPLD"/
     )
   })
 
@@ -922,7 +910,7 @@ describe("parse", () => {
 
     assert.throws(
       () => UCAN.parse(jwt),
-      /DID has invalid representation 'aud: "bob"'/
+      /Invalid DID "bob", must start with 'did:/
     )
   })
 
@@ -939,10 +927,7 @@ describe("parse", () => {
       },
     })
 
-    assert.throws(
-      () => UCAN.parse(jwt),
-      /prf\[0\] has invalid value 1, must be a string/
-    )
+    assert.throws(() => UCAN.parse(jwt), /prf\[0\] has invalid value 1/)
   })
 
   it("errors on invalid prf", async () => {
@@ -958,10 +943,7 @@ describe("parse", () => {
       },
     })
 
-    assert.throws(
-      () => UCAN.parse(jwt),
-      /prf has invalid value {}, must be a string/
-    )
+    assert.throws(() => UCAN.parse(jwt), /prf must be an array/)
   })
 })
 
@@ -994,18 +976,17 @@ describe("encode <-> decode", () => {
       ],
     })
 
-    const v2 = UCAN.encode({
-      code: CBOR.code,
+    const v2 = UCAN.encode(
       // @ts-expect-error - leaving out proofs and facts
-      model: {
+      {
         v: v1.version,
         iss: v1.issuer,
         aud: v1.audience,
         exp: v1.expiration,
         att: [...v1.capabilities],
         s: v1.signature,
-      },
-    })
+      }
+    )
 
     assert.deepEqual(v2, UCAN.encode(v1))
   })
@@ -1157,7 +1138,6 @@ describe("api compatibility", () => {
       codec: UCAN,
       hasher: sha256,
     })
-
 
     const { cid, bytes } = await UCAN.write(ucan, { hasher: sha256 })
     assert.deepEqual(cid, block.cid)
