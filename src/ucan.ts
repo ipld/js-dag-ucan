@@ -186,6 +186,9 @@ export interface View<C extends Capabilities = Capabilities> extends Model<C> {
   readonly proofs: Link[]
 
   readonly signature: Crypto.Signature<string>
+
+  encode(): ByteView<UCAN<C>>
+  format(): JWT<C>
 }
 
 /**

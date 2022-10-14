@@ -4,6 +4,7 @@ import { assert } from "chai"
 import { alice, bob, mallory, JWT_UCAN, JWT_UCAN_SIG } from "./fixtures.js"
 import * as TSUCAN from "./ts-ucan.cjs"
 import * as CBOR from "../src/codec/cbor.js"
+import { encode as encodeCBOR } from "@ipld/dag-cbor"
 import * as RAW from "multiformats/codecs/raw"
 import * as UTF8 from "../src/utf8.js"
 import * as DID from "../src/did.js"
@@ -35,6 +36,7 @@ describe("dag-ucan", () => {
 
     assertUCAN(ucan, {
       version: UCAN.VERSION,
+      code: CBOR.code,
       issuer: DID.parse(alice.did()),
       audience: DID.parse(alice.did()),
       capabilities: [
@@ -50,6 +52,8 @@ describe("dag-ucan", () => {
     })
 
     assert.ok(ucan.expiration > UCAN.now())
+    assert.deepEqual(ucan.encode(), UCAN.encode(ucan))
+    assert.deepEqual(ucan.format(), UCAN.format(ucan))
   })
 
   it("derive token", async () => {
@@ -1043,6 +1047,35 @@ describe("encode <-> decode", () => {
     const actual = UCAN.decode(UCAN.encode(expected))
     assert.deepEqual(expected, actual)
   })
+
+  it("fails on bad model", async () => {
+    const now = UCAN.now()
+    const { model } = await UCAN.issue({
+      issuer: alice,
+      audience: bob,
+      capabilities: [
+        {
+          with: alice.did(),
+          can: "store/put",
+        },
+      ],
+      notBefore: now + 10,
+      expiration: now + 120,
+    })
+
+    const { iss, aud, s, nnc, ...body } = model
+
+    console.log(body)
+
+    const bytes = encodeCBOR({
+      ...body,
+      iss: DID.encode(iss),
+      aud: DID.encode(aud),
+      s: "hello",
+    })
+
+    assert.throws(() => UCAN.decode(bytes))
+  })
 })
 
 describe("ts-ucan compat", () => {
@@ -1051,6 +1084,7 @@ describe("ts-ucan compat", () => {
     const ucan = UCAN.parse(jwt)
 
     assertUCAN(ucan, {
+      code: RAW.code,
       version: "0.8.1",
       issuer: DID.parse(alice.did()),
       audience: DID.parse(bob.did()),
@@ -1072,6 +1106,9 @@ describe("ts-ucan compat", () => {
     })
 
     assert.equal(UCAN.format(ucan), jwt)
+    assert.equal(ucan.format(), jwt)
+    assert.deepEqual(ucan.encode(), UCAN.encode(ucan))
+    assert.equal(UCAN.decode(ucan.encode()).code, RAW.code)
 
     const cid = await UCAN.link(ucan)
     assert.equal(cid.code, RAW.code)
