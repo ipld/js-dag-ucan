@@ -1,28 +1,32 @@
 import type {
-  Link as IPLDLink,
-  Version as LinkVersion,
   MultibaseEncoder,
   MultibaseDecoder,
   MultihashDigest,
   MultihashHasher,
   Block as IPLDBlock,
+  Link as IPLDLink,
+  Version as LinkVersion,
+  Phantom,
+  ByteView,
 } from "multiformats"
 import type { code as RAW_CODE } from "multiformats/codecs/raw"
 import type { code as CBOR_CODE } from "@ipld/dag-cbor"
 import * as Crypto from "./crypto.js"
-import type { Phantom, ByteView, ToString } from "./marker.js"
 
 export * from "./crypto.js"
-export * from "./marker.js"
-
-export type Code = typeof CBOR_CODE | typeof RAW_CODE
-
 export type {
-  MultihashDigest,
   MultibaseEncoder,
   MultibaseDecoder,
+  MultihashDigest,
   MultihashHasher,
+  IPLDBlock,
+  IPLDLink,
+  LinkVersion,
+  Phantom,
+  ByteView,
 }
+
+export type Code = typeof CBOR_CODE | typeof RAW_CODE
 
 /**
  * This utility type can be used in place of `T[]` where you
@@ -75,7 +79,7 @@ export interface Signer<
 }
 
 /**
- * Verifiable facts and proofs of knowledge included in a UCAN {@link Payload} in order to
+ * Verifiable facts and proofs of knowledge included in a UCAN {@link JWTPayload} in order to
  * support claimed capabilities.
  * @see https://github.com/ucan-wg/spec/#324-facts
  */
@@ -90,7 +94,7 @@ export type Version = `${number}.${number}.${number}`
  * A UCAN header, in the format used by the JWT encoding.
  * @see https://github.com/ucan-wg/spec/#31-header
  */
-export interface Header {
+export interface JWTHeader {
   ucv: Version
   alg: "EdDSA" | "RS256"
   typ: "JWT"
@@ -100,7 +104,7 @@ export interface Header {
  * A UCAN payload, in the format used by the JWT encoding.
  * @see https://github.com/ucan-wg/spec/#32-payload
  */
-export interface Payload<C extends Capabilities = Capabilities> {
+export interface JWTPayload<C extends Capabilities = Capabilities> {
   iss: DID
   aud: DID
   exp: number | null
@@ -114,19 +118,18 @@ export interface Payload<C extends Capabilities = Capabilities> {
 /**
  * Represents a UCAN encoded as a JWT string.
  */
-export type JWT<C extends Capabilities = Capabilities> = string &
-  Phantom<Model<C>>
+export type JWT<C extends Capabilities = Capabilities> = ToString<
+  UCAN<C>,
+  `${ToString<JWTHeader>}.${ToString<
+    JWTPayload<C>
+  >}.${ToString<Crypto.Signature>}`
+>
 
-/**
- * A signed UCAN in either IPLD or JWT format.
- */
-export type UCAN<C extends Capabilities = Capabilities> = Model<C> | JWT<C>
-
-/**
- * IPLD representation of an unsigned UCAN.
- */
-export interface Data<C extends Capabilities = Capabilities> {
+export interface Header {
   v: Version
+}
+
+export interface Payload<C extends Capabilities = Capabilities> {
   iss: Issuer
   aud: Audience
   att: C
@@ -140,32 +143,34 @@ export interface Data<C extends Capabilities = Capabilities> {
 /**
  * IPLD representation of a signed UCAN.
  */
-export interface Model<C extends Capabilities = Capabilities> extends Data<C> {
+export interface Model<C extends Capabilities = Capabilities>
+  extends Header,
+    Payload<C> {
   s: Crypto.Signature<string>
 }
 
-export type View<C extends Capabilities = Capabilities> =
-  | CBORView<C>
-  | JWTView<C>
+export interface FromJWT<C extends Capabilities = Capabilities>
+  extends Model<C> {
+  jwt: JWT<C>
+}
 
-export interface CBORView<C extends Capabilities = Capabilities>
-  extends UCANView<C> {
-  readonly code: typeof CBOR_CODE
+export interface FromModel<C extends Capabilities = Capabilities>
+  extends Model<C> {
+  jwt?: never
 }
 
 /**
- * A {@link View} of a UCAN that has been encoded as a JWT string.
+ * A signed UCAN in either IPLD or JWT format.
  */
-export interface JWTView<C extends Capabilities = Capabilities>
-  extends UCANView<C> {
-  readonly code: typeof RAW_CODE
-  readonly bytes: ByteView<JWT<C>>
-}
+export type UCAN<C extends Capabilities = Capabilities> =
+  | FromJWT<C>
+  | FromModel<C>
 
 /**
  * Represents a decoded "view" of a UCAN as a JS object that can be used in your domain logic, etc.
  */
-export interface UCANView<C extends Capabilities = Capabilities> {
+export interface View<C extends Capabilities = Capabilities> extends Model<C> {
+  readonly code: Code
   readonly model: Model<C>
 
   readonly issuer: PrincipalView<string>
@@ -181,6 +186,9 @@ export interface UCANView<C extends Capabilities = Capabilities> {
   readonly proofs: Link[]
 
   readonly signature: Crypto.Signature<string>
+
+  encode(): ByteView<UCAN<C>>
+  format(): JWT<C>
 }
 
 /**
@@ -262,3 +270,21 @@ export interface Capability<
 }
 
 export type Capabilities = Tuple<Capability>
+
+/**
+ * Utility type that retains type information about data of type `In`, encoded
+ * as type `Out`.
+ *
+ * For concrete examples see {@link ToString} and {@link ToJSONString}.
+ */
+export type Encoded<In, Out> = Out & Phantom<In>
+
+/**
+ * Data of some type `In`, encoded as a string.
+ */
+export type ToString<In, Out extends string = string> = Encoded<In, Out>
+
+/**
+ * Data of some type `In`, encoded as a JSON string.
+ */
+export type ToJSONString<In, Out extends string = string> = Encoded<In, Out>

@@ -1,21 +1,16 @@
 import * as UCAN from "./ucan.js"
 import * as DID from "./did.js"
-import { code as RAW_CODE } from "multiformats/codecs/raw"
-import { code as CBOR_CODE } from "@ipld/dag-cbor"
 
 /**
  * @template {UCAN.Capabilities} C
- * @template {UCAN.Code} Code
  */
-class View {
+export class View {
   /**
-   * @param {UCAN.Model<C>} model
-   * @param {Code} code
+   * @param {UCAN.UCAN<C>} model
    */
-  constructor(model, code) {
+  constructor(model) {
     /** @readonly */
     this.model = model
-    this.code = code
   }
 
   get version() {
@@ -78,36 +73,39 @@ class View {
   get signature() {
     return this.model.s
   }
-}
 
-/**
- * @template {UCAN.Capabilities} C
- * @extends {View<C, typeof RAW_CODE>}
- * @implements {UCAN.JWTView<C>}
- */
-export class JWTView extends View {
-  /**
-   * @param {UCAN.Model<C>} model
-   * @param {UCAN.ByteView<UCAN.JWT<C>>} bytes
-   */
-
-  constructor(model, bytes) {
-    super(model, RAW_CODE)
-    this.bytes = bytes
+  // compatibility with UCAN.UCAN
+  get jwt() {
+    return this.model.jwt
+  }
+  get s() {
+    return this.model.s
+  }
+  get v() {
+    return this.model.v
+  }
+  get iss() {
+    return this.model.iss
+  }
+  get aud() {
+    return this.model.aud
+  }
+  get att() {
+    return this.model.att
+  }
+  get exp() {
+    return this.model.exp
+  }
+  get nbf() {
+    return this.model.nbf
+  }
+  get nnc() {
+    return this.model.nnc
+  }
+  get fct() {
+    return this.model.fct
+  }
+  get prf() {
+    return this.model.prf
   }
 }
-
-/**
- * @template {UCAN.Capabilities} C
- * @param {UCAN.Model<C>} model
- * @returns {UCAN.CBORView<C>}
- */
-export const cbor = model => new View(model, CBOR_CODE)
-
-/**
- * @template {UCAN.Capabilities} C
- * @param {UCAN.Model<C>} model
- * @param {UCAN.ByteView<UCAN.JWT<C>>} bytes
- * @returns {UCAN.JWTView<C>}
- */
-export const jwt = (model, bytes) => new JWTView(model, bytes)

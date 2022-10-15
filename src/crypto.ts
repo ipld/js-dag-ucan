@@ -1,4 +1,4 @@
-import type { ByteView } from "./marker.js"
+import type { ByteView } from "./ucan.js"
 
 /**
  * Represents an entity that can verify signatures produced by a given signing algorithm `A`.

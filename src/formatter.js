@@ -9,29 +9,32 @@ import * as Signature from "./signature.js"
  * @param {UCAN.Model<C>} model
  * @returns {UCAN.JWT<C>}
  */
-export const format = model =>
-  `${formatHeader(model, model.s.algorithm)}.${formatPayload(
-    model
-  )}.${formatSignature(model.s)}`
+export const format = model => {
+  const header = formatHeader(model.v, model.s.algorithm)
+  const payload = formatPayload(model)
+  const signature = formatSignature(model.s)
+  return /** @type {UCAN.JWT<C>} */ (`${header}.${payload}.${signature}`)
+}
 
 /**
  * @template {UCAN.Capabilities} C
- * @param {UCAN.Data<C>} model
+ * @param {UCAN.Payload<C>} payload
+ * @param {UCAN.Version} version
  * @param {string} alg
  */
-export const formatSignPayload = (model, alg) =>
-  `${formatHeader(model, alg)}.${formatPayload(model)}`
+export const formatSignPayload = (payload, version, alg) =>
+  `${formatHeader(version, alg)}.${formatPayload(payload)}`
 
 /**
- * @param {UCAN.Data} data
+ * @param {UCAN.Version} version
  * @param {string} alg
  */
-export const formatHeader = (data, alg) =>
-  base64url.baseEncode(encodeHeader(data, alg))
+export const formatHeader = (version, alg) =>
+  base64url.baseEncode(encodeHeader(version, alg))
 
 /**
  * @template {UCAN.Capabilities} C
- * @param {UCAN.Data<C>} data
+ * @param {UCAN.Payload<C>} data
  */
 export const formatPayload = data => base64url.baseEncode(encodePayload(data))
 
@@ -41,23 +44,23 @@ export const formatPayload = data => base64url.baseEncode(encodePayload(data))
 export const formatSignature = signature => base64url.baseEncode(signature.raw)
 
 /**
- * @param {UCAN.Data} data
+ * @param {UCAN.Version} v
  * @param {string} alg
- * @returns {UCAN.ByteView<UCAN.Header>}
+ * @returns {UCAN.ByteView<UCAN.JWTHeader>}
  */
-export const encodeHeader = (data, alg) =>
+const encodeHeader = (v, alg) =>
   json.encode({
     alg,
-    ucv: data.v,
+    ucv: v,
     typ: "JWT",
   })
 
 /**
  * @template {UCAN.Capabilities} C
- * @param {UCAN.Data<C>} data
- * @returns {UCAN.ByteView<UCAN.Payload<C>>}
+ * @param {UCAN.Payload<C>} data
+ * @returns {UCAN.ByteView<UCAN.JWTPayload<C>>}
  */
-export const encodePayload = data =>
+const encodePayload = data =>
   json.encode({
     iss: DID.format(data.iss),
     aud: DID.format(data.aud),
@@ -73,4 +76,4 @@ export const encodePayload = data =>
 /**
  * @param {UCAN.Link} proof
  */
-export const encodeProof = proof => proof.toString()
+const encodeProof = proof => proof.toString()
