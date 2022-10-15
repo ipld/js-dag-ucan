@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.0.0](https://github.com/ipld/js-dag-ucan/compare/v1.0.0...v2.0.0) (2022-10-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* make view compatible with model (#63)
+
+### Features
+
+* make view compatible with model ([#63](https://github.com/ipld/js-dag-ucan/issues/63)) ([73986b9](https://github.com/ipld/js-dag-ucan/commit/73986b9c5867a7963bb09b9eafe8c5650bb68bbe))
+
 ## [1.0.0](https://github.com/ipld/js-dag-ucan/compare/v4.0.0-beta...v1.0.0) (2022-10-13)
 
 
