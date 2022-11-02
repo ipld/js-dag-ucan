@@ -29,8 +29,8 @@
     "check": "tsc --build"
   },
   "dependencies": {
-    "@ipld/dag-cbor": "^7.0.3",
-    "@ipld/dag-json": "^8.0.11",
+    "@ipld/dag-cbor": "^8.0.0",
+    "@ipld/dag-json": "^9.0.1",
     "multiformats": "^10.0.0"
   },
   "devDependencies": {
