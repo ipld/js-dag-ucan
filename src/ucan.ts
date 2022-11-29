@@ -44,36 +44,32 @@ export type DID<Method extends string = string> = `did:${Method}:${string}`
 /**
  * DID object representation with a `did` accessor for the {@link DID}.
  */
-export interface Principal<Method extends string = string> {
-  did(): DID<Method>
+export interface Principal<ID extends DID = DID> {
+  did(): ID
 }
 
 /**
  * A byte-encoded {@link DID} that provides a `did` accessor method (see {@link Principal}).
  */
-export interface PrincipalView<Method extends string = string>
-  extends ByteView<Principal<Method>>,
-    Principal<Method> {}
+export interface PrincipalView<ID extends DID = DID>
+  extends ByteView<Principal<ID>>,
+    Principal<ID> {}
 
 /**
  * Entity that can verify UCAN signatures against a {@link Principal} produced with the algorithm `A` (see {@link CryptoVerifier}).
  */
-export interface Verifier<
-  Method extends string = string,
-  A extends number = number
-> extends Crypto.Verifier<A>,
-    Principal<Method> {}
+export interface Verifier<ID extends DID = DID, A extends number = number>
+  extends Crypto.Verifier<A>,
+    Principal<ID> {}
 
-export interface Audience extends Principal<string> {}
-export interface Issuer extends Principal<string> {}
+export interface Audience extends Principal {}
+export interface Issuer extends Principal {}
 /**
  * Entity that can sign UCANs with keys from a {@link Principal} using the signing algorithm A
  */
-export interface Signer<
-  Method extends string = string,
-  A extends number = number
-> extends Crypto.Signer<A>,
-    Principal<Method> {
+export interface Signer<ID extends DID = DID, A extends number = number>
+  extends Crypto.Signer<A>,
+    Principal<ID> {
   signatureAlgorithm: string
   signatureCode: A
 }
@@ -173,8 +169,8 @@ export interface View<C extends Capabilities = Capabilities> extends Model<C> {
   readonly code: Code
   readonly model: Model<C>
 
-  readonly issuer: PrincipalView<string>
-  readonly audience: PrincipalView<string>
+  readonly issuer: PrincipalView
+  readonly audience: PrincipalView
 
   readonly version: Version
 
@@ -201,7 +197,7 @@ export interface UCANOptions<
   C extends Capabilities = Capabilities,
   A extends number = number
 > {
-  issuer: Signer<string, A>
+  issuer: Signer<DID, A>
   audience: Audience
   capabilities: C
   lifetimeInSeconds?: number
