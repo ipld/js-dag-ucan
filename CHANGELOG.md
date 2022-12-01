@@ -1,5 +1,16 @@
 # Changelog
 
+## [3.0.0](https://github.com/ipld/js-dag-ucan/compare/v2.0.1...v3.0.0) (2022-12-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* simplify principal type ([#67](https://github.com/ipld/js-dag-ucan/issues/67))
+
+### Features
+
+* simplify principal type ([#67](https://github.com/ipld/js-dag-ucan/issues/67)) ([a77f9c5](https://github.com/ipld/js-dag-ucan/commit/a77f9c5751d16c95d1c5e8fdd6f702c795fbe533))
+
 ## [2.0.1](https://github.com/ipld/js-dag-ucan/compare/v2.0.0...v2.0.1) (2022-11-03)
 
 
