@@ -26,7 +26,9 @@ export type {
   ByteView,
 }
 
-export type Code = typeof CBOR_CODE | typeof RAW_CODE
+export type Code =
+  | MulticodecCode<typeof CBOR_CODE, "CBOR">
+  | MulticodecCode<typeof RAW_CODE, "Raw">
 
 /**
  * This utility type can be used in place of `T[]` where you
@@ -56,22 +58,43 @@ export interface PrincipalView<ID extends DID = DID>
     Principal<ID> {}
 
 /**
- * Entity that can verify UCAN signatures against a {@link Principal} produced with the algorithm `A` (see {@link CryptoVerifier}).
+ * Entity that can verify UCAN signatures against a {@link Principal} produced
+ * with the algorithm `A` (see {@link Crypto.Verifier}).
  */
-export interface Verifier<ID extends DID = DID, A extends number = number>
-  extends Crypto.Verifier<A>,
+export interface Verifier<
+  ID extends DID = DID,
+  SigAlg extends Crypto.SigAlg = Crypto.SigAlg
+> extends Crypto.Verifier<SigAlg>,
     Principal<ID> {}
 
 export interface Audience extends Principal {}
 export interface Issuer extends Principal {}
 /**
- * Entity that can sign UCANs with keys from a {@link Principal} using the signing algorithm A
+ * Entity that can sign UCANs with keys from a {@link Principal} using the
+ * signing algorithm A
  */
-export interface Signer<ID extends DID = DID, A extends number = number>
-  extends Crypto.Signer<A>,
+export interface Signer<
+  ID extends DID = DID,
+  SigAlg extends Crypto.SigAlg = Crypto.SigAlg
+> extends Crypto.Signer<SigAlg>,
     Principal<ID> {
+  /**
+   * Integer corresponding to the byteprefix of the {@link Crypto.SigAlg}. It
+   * is used to tag [signature] so it can self describe what algorithm was used.
+   *
+   * [signature]:https://github.com/ucan-wg/ucan-ipld/#25-signature
+   */
+  signatureCode: SigAlg
+
+  /**
+   * Name of the signature algorithm. It is a human readable equivalent of
+   * the {@link signatureCode}, however it is also used as last segment in
+   * [Nonstandard Signatures], which is used as an `alg` field of JWT header
+   * when UCANs are serialized to JWT.
+   *
+   * [Nonstandard Signatures]:https://github.com/ucan-wg/ucan-ipld/#251-nonstandard-signatures
+   */
   signatureAlgorithm: string
-  signatureCode: A
 }
 
 /**
@@ -103,10 +126,10 @@ export interface JWTHeader {
 export interface JWTPayload<C extends Capabilities = Capabilities> {
   iss: DID
   aud: DID
-  exp: number | null
+  exp: UTCUnixTimestamp | null
   att: C
-  nnc?: string
-  nbf?: number
+  nnc?: Nonce
+  nbf?: UTCUnixTimestamp
   fct?: Fact[]
   prf?: ToString<Link>
 }
@@ -129,9 +152,9 @@ export interface Payload<C extends Capabilities = Capabilities> {
   iss: Issuer
   aud: Audience
   att: C
-  exp: number | null
-  nbf?: number
-  nnc?: string
+  exp: UTCUnixTimestamp | null
+  nbf?: UTCUnixTimestamp
+  nnc?: Nonce
   fct: Fact[]
   prf: Link[]
 }
@@ -175,13 +198,13 @@ export interface View<C extends Capabilities = Capabilities> extends Model<C> {
   readonly version: Version
 
   readonly capabilities: C
-  readonly expiration: number
-  readonly notBefore?: number
-  readonly nonce?: string
+  readonly expiration: UTCUnixTimestamp
+  readonly notBefore?: UTCUnixTimestamp
+  readonly nonce?: Nonce
   readonly facts: Fact[]
   readonly proofs: Link[]
 
-  readonly signature: Crypto.Signature<string>
+  readonly signature: Crypto.Signature
 
   encode(): ByteView<UCAN<C>>
   format(): JWT<C>
@@ -195,16 +218,16 @@ export interface View<C extends Capabilities = Capabilities> extends Model<C> {
  */
 export interface UCANOptions<
   C extends Capabilities = Capabilities,
-  A extends number = number
+  SigAlg extends Crypto.SigAlg = Crypto.SigAlg
 > {
-  issuer: Signer<DID, A>
+  issuer: Signer<DID, SigAlg>
   audience: Audience
   capabilities: C
   lifetimeInSeconds?: number
-  expiration?: number
-  notBefore?: number
+  expiration?: UTCUnixTimestamp
+  notBefore?: UTCUnixTimestamp
 
-  nonce?: string
+  nonce?: Nonce
 
   facts?: Fact[]
   proofs?: Link[]
@@ -214,13 +237,14 @@ export interface UCANOptions<
  * Represents an IPLD link to a UCAN in either IPLD or JWT format
  *
  * @template Cap - {@link Capability}
- * @template Alg - multicodec code corresponding to the hashing algorithm of the CID
+ * @template Encoding - multicodec code corresponding to the encoding
+ * @template SigAlg - multicodec code corresponding to the hashing algorithm of the CID
  */
 export interface Link<
   C extends Capabilities = Capabilities,
-  F extends Code = Code,
-  A extends number = number
-> extends IPLDLink<UCAN<C>, F, A> {}
+  Encoding extends MulticodecCode = MulticodecCode,
+  SigAlg extends Crypto.SigAlg = Crypto.SigAlg
+> extends IPLDLink<UCAN<C>, Encoding, SigAlg> {}
 
 /**
  * Represents a UCAN IPLD block
@@ -228,13 +252,14 @@ export interface Link<
  * Note: once we change the Capability generic to an array we can merge this with ucanto transport block
  *
  * @template C - {@link Capabilities}
- * @template A - Multicodec code corresponding to the hashing algorithm of the {@link Link}
+ * @template Encoding - multicodec code corresponding to the encoding
+ * @template SigAlg - Multicodec code corresponding to the hashing algorithm of the {@link Link}
  */
 export interface Block<
   C extends Capabilities = Capabilities,
-  F extends Code = Code,
-  A extends number = number
-> extends IPLDBlock<UCAN<C>, F, A> {
+  Encoding extends MulticodecCode = MulticodecCode,
+  SigAlg extends Crypto.SigAlg = Crypto.SigAlg
+> extends IPLDBlock<UCAN<C>, Encoding, SigAlg> {
   data?: UCAN<C>
 }
 
@@ -284,3 +309,20 @@ export type ToString<In, Out extends string = string> = Encoded<In, Out>
  * Data of some type `In`, encoded as a JSON string.
  */
 export type ToJSONString<In, Out extends string = string> = Encoded<In, Out>
+
+/**
+ * [Multicodec code] usually used to tag [multiformat].
+ *
+ * [multiformat]:https://multiformats.io/
+ * [multicodec code]:https://github.com/multiformats/multicodec/blob/master/table.csv
+ */
+export type MulticodecCode<
+  Code extends number = number,
+  Name extends string = string
+> = Code & Phantom<Name>
+
+/**
+ * UTC Unix Timestamp
+ */
+export type UTCUnixTimestamp = number
+export type Nonce = string

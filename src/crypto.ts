@@ -1,42 +1,49 @@
-import type { ByteView } from "./ucan.js"
+import type { ByteView, MulticodecCode } from "./ucan.js"
 
 /**
- * Represents an entity that can verify signatures produced by a given signing algorithm `A`.
+ * Multicodec code corresponding to the byteprefix of the [VarSig]. It is
+ * used to encode which signature algorithm was used to produce signature.
  *
- * @template A - the [multicodec code](https://github.com/multiformats/multicodec/blob/master/table.csv)
- * for a cryptographic signing algorithm
+ * [VarSig]:https://github.com/ucan-wg/ucan-ipld/#25-signature
  */
-export interface Verifier<A extends number = number> {
+export type SigAlg = MulticodecCode
+
+/**
+ * Represents an entity that can verify signatures produced by a given signing
+ * algorithm `Alg`.
+ */
+export interface Verifier<Alg extends SigAlg = SigAlg> {
   /**
+   * @template T - Source data before it was byte encoding into payload.
+   *
    * Takes byte encoded payload and verifies that it is signed by corresponding
    * signer.
    */
-  verify<T>(payload: ByteView<T>, signature: Signature<T, A>): Await<boolean>
+  verify<T>(payload: ByteView<T>, signature: Signature<T, Alg>): Await<boolean>
 }
 
 /**
- * Represents an entity that can sign a payload using the signing algorithm `A`.
- *
- * @template A - the [multicodec code](https://github.com/multiformats/multicodec/blob/master/table.csv)
- * for a cryptographic signing algorithm
+ * Represents an entity that can sign a payload using the signing algorithm
+ * `Alg`.
  */
-export interface Signer<A extends number = number> {
+export interface Signer<Alg extends SigAlg = SigAlg> {
   /**
+   * @template T - Source data before it was byte encoding into payload.
+   *
    * Takes byte encoded payload and produces a verifiable signature.
    */
-  sign<T>(payload: ByteView<T>): Await<Signature<T, A>>
+  sign<T>(payload: ByteView<T>): Await<Signature<T, Alg>>
 }
 
 /**
- * Represents a cryptographic signature of (the byte-encoding of) some data of type `T`.
+ * Represents a cryptographic signature of (the byte-encoded) data of type `T`.
  *
- * @template T - represents the structure of the data that was byte-encoded before signing
- * @template A - the [multicodec code](https://github.com/multiformats/multicodec/blob/master/table.csv)
- * for a cryptographic signing algorithm
+ * @template T - Represents the structure of the data that was byte-encoded before signing.
+ * @template Alg - Multicodec code corresponding to cryptographic signing algorithm used
  */
-export interface Signature<T = unknown, A extends number = number>
-  extends ByteView<Signature<T, A>> {
-  code: A
+export interface Signature<T = unknown, Alg extends SigAlg = SigAlg>
+  extends ByteView<Signature<T, Alg>> {
+  code: Alg
   algorithm: string
   /**
    * Raw signature (without a signature algorithm info)
@@ -47,32 +54,32 @@ export interface Signature<T = unknown, A extends number = number>
 /**
  * Just like {@link Verifier}, except definitely async.
  */
-export interface AsyncVerifier<A extends number> {
+export interface AsyncVerifier<Alg extends SigAlg> {
   verify<T>(
     payload: ByteView<T>,
-    signature: Signature<T, A>
+    signature: Signature<T, Alg>
   ): PromiseLike<boolean>
 }
 
 /**
  * Just like {@link Verifier}, but definitely sync.
  */
-export interface SyncVerifier<A extends number> {
-  verify<T>(payload: ByteView<T>, signature: Signature<T, A>): boolean
+export interface SyncVerifier<Alg extends SigAlg> {
+  verify<T>(payload: ByteView<T>, signature: Signature<T, Alg>): boolean
 }
 
 /**
  * Just like {@link Signer}, but definitely sync.
  */
-export interface SyncSigner<A extends number = number> {
-  sign<T>(payload: ByteView<T>): Signature<T, A>
+export interface SyncSigner<Alg extends SigAlg = SigAlg> {
+  sign<T>(payload: ByteView<T>): Signature<T, Alg>
 }
 
 /**
  * Just like {@link Signer}, but definitely async.
  */
-export interface AsyncSigner<A extends number = number> {
-  sign<T>(payload: ByteView<T>): PromiseLike<Signature<T, A>>
+export interface AsyncSigner<Alg extends SigAlg = SigAlg> {
+  sign<T>(payload: ByteView<T>): PromiseLike<Signature<T, Alg>>
 }
 
 /**
