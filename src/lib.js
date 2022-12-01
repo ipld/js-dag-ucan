@@ -18,7 +18,7 @@ export const code = /** @type {UCAN.Code} */ (CBOR.code)
 
 /**
  * We cast sha256 to workaround typescripts limited inference problem when using
- * sha256 as default. If hasher is omitted type `A` should match shar256.code
+ * sha256 as default. If hasher is omitted type `A` should match sha256.code
  * but TS fails to deduce that.
  * @type {UCAN.MultihashHasher<any>}
  */
@@ -55,7 +55,7 @@ export const decode = bytes => {
 
 /**
  * Convenience function to create a CID for the given UCAN. If UCAN is
- * in JWT represetation get CID with RAW multicodec, while UCANs in IPLD
+ * in JWT representation get CID with RAW multicodec, while UCANs in IPLD
  * representation get UCAN multicodec code.
  *
  * @template {UCAN.Capabilities} C
@@ -90,7 +90,7 @@ export const write = async (ucan, { hasher = defaultHasher } = {}) => {
 
 /**
  * Parses UCAN formatted as JWT string. Returns UCAN view in IPLD representation
- * when serailazing it back would produce original string, oherwise returns UCAN
+ * when serializing it back would produce original string, otherwise returns UCAN
  * view in secondary JWT representation which is not as compact, but it retains
  * key order and whitespaces so it could be formatted back to same JWT string.
  * View will have `type` field with either `"IPLD"` or `"JWT"` value telling
