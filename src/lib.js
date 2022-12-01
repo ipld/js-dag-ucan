@@ -90,7 +90,7 @@ export const write = async (ucan, { hasher = defaultHasher } = {}) => {
 
 /**
  * Parses UCAN formatted as JWT string. Returns UCAN view in IPLD representation
- * when serializing it back would produce original string, overwise returns UCAN
+ * when serializing it back would produce original string, otherwise returns UCAN
  * view in secondary JWT representation which is not as compact, but it retains
  * key order and whitespaces so it could be formatted back to same JWT string.
  * View will have `type` field with either `"IPLD"` or `"JWT"` value telling
