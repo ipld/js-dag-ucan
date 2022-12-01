@@ -26,9 +26,9 @@ const METHOD_OFFSET = varint.encodingLength(DID_CORE)
 /**
  * Parses a DID string into a DID buffer view
  *
- * @template {string} Method
- * @param {UCAN.DID<Method>|UCAN.ToString<unknown>} did
- * @returns {UCAN.PrincipalView<Method>}
+ * @template {UCAN.DID} ID
+ * @param {ID|UCAN.ToString<unknown>} did
+ * @returns {UCAN.PrincipalView<ID>}
  */
 export const parse = did => {
   if (!did.startsWith(DID_PREFIX)) {
@@ -46,20 +46,20 @@ export const parse = did => {
 }
 
 /**
- * @template {string} Method
- * @param {UCAN.Principal<Method>} id
- * @returns {UCAN.DID<Method>}
+ * @template {UCAN.DID} ID
+ * @param {UCAN.Principal<ID>} id
+ * @returns {ID}
  */
 export const format = id => id.did()
 
 /**
- * @template {string} Method
- * @param {UCAN.PrincipalView<Method>|UCAN.ByteView<UCAN.Principal<Method>>|UCAN.Principal<Method>|UCAN.DID<Method>|UCAN.ToJSONString<unknown>} principal
- * @returns {UCAN.PrincipalView<Method>}
+ * @template {UCAN.DID} ID
+ * @param {UCAN.PrincipalView<ID>|UCAN.ByteView<UCAN.Principal<ID>>|UCAN.Principal<ID>|ID|UCAN.ToJSONString<unknown>} principal
+ * @returns {UCAN.PrincipalView<ID>}
  */
 export const from = principal => {
   if (principal instanceof DID) {
-    return /** @type {UCAN.PrincipalView<Method>} */ (principal)
+    return principal
   } else if (principal instanceof Uint8Array) {
     return decode(principal)
   } else if (typeof principal === "string") {
@@ -70,9 +70,9 @@ export const from = principal => {
 }
 
 /**
- * @template {string} Method
- * @param {UCAN.ByteView<UCAN.Principal<Method>>} bytes
- * @returns {UCAN.PrincipalView<Method>}
+ * @template {UCAN.DID} ID
+ * @param {UCAN.ByteView<UCAN.Principal<ID>>} bytes
+ * @returns {UCAN.PrincipalView<ID>}
  */
 export const decode = bytes => {
   const [code] = varint.decode(bytes)
@@ -86,7 +86,7 @@ export const decode = bytes => {
     case RSA:
     case P384:
     case P521:
-      return /** @type {UCAN.PrincipalView<Method>} */ (
+      return /** @type {UCAN.PrincipalView<ID>} */ (
         new DIDKey(buffer, byteOffset, byteLength)
       )
     case DID_CORE:
@@ -99,32 +99,30 @@ export const decode = bytes => {
 }
 
 /**
- * @template {string} Method
- * @param {UCAN.Principal<Method>} principal
- * @returns {UCAN.PrincipalView<Method>}
+ * @template {UCAN.DID} ID
+ * @param {UCAN.Principal<ID>} principal
+ * @returns {UCAN.PrincipalView<ID>}
  */
 export const encode = principal => parse(principal.did())
 
 /**
- * @template {string} Method
- * @implements {UCAN.PrincipalView}
+ * @template {UCAN.DID} ID
+ * @implements {UCAN.PrincipalView<ID>}
  * @extends {Uint8Array}
  */
 class DID extends Uint8Array {
   /**
-   * @returns {`did:${Method}:${string}`}
+   * @returns {ID}
    */
   did() {
     const bytes = new Uint8Array(this.buffer, this.byteOffset + METHOD_OFFSET)
-    return /** @type {`did:${Method}:${string}`} */ (
-      `did:${UTF8.decode(bytes)}`
-    )
+    return /** @type {ID} */ (`did:${UTF8.decode(bytes)}`)
   }
 }
 
 /**
- * @implements {UCAN.PrincipalView<"key">}
- * @extends {DID<"key">}
+ * @implements {UCAN.PrincipalView<UCAN.DID<"key">>}
+ * @extends {DID<UCAN.DID<"key">>}
  */
 class DIDKey extends DID {
   /**
