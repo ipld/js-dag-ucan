@@ -1,7 +1,7 @@
 {
   "name": "@ipld/dag-ucan",
   "description": "UCAN codec for IPLD",
-  "version": "2.0.1",
+  "version": "3.0.0",
   "keywords": [
     "UCAN",
     "IPLD",
