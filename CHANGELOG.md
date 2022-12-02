@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.1](https://github.com/ipld/js-dag-ucan/compare/v3.0.0...v3.0.1) (2022-12-02)
+
+
+### Miscellaneous Chores
+
+* release 3.0.1 ([51c576a](https://github.com/ipld/js-dag-ucan/commit/51c576a5890d3ad804593396951f797bae7e2775))
+
 ## [3.0.0](https://github.com/ipld/js-dag-ucan/compare/v2.0.1...v3.0.0) (2022-12-01)
 
 
