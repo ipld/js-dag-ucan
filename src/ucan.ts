@@ -168,6 +168,22 @@ export interface Model<C extends Capabilities = Capabilities>
   s: Crypto.Signature<string>
 }
 
+export type UCANJSON<T extends UCAN = UCAN> = ToJSON<
+  T,
+  {
+    v: Version
+    iss: DID
+    aud: DID
+    s: Crypto.SignatureJSON
+    att: ToJSON<T["att"]>
+    prf: { "/": ToString<Link> }[]
+    exp: UTCUnixTimestamp
+    fct?: ToJSON<T["fct"]>
+    nnc?: Nonce
+    nbf?: UTCUnixTimestamp
+  }
+>
+
 export interface FromJWT<C extends Capabilities = Capabilities>
   extends Model<C> {
   jwt: JWT<C>
@@ -309,6 +325,34 @@ export type ToString<In, Out extends string = string> = Encoded<In, Out>
  * Data of some type `In`, encoded as a JSON string.
  */
 export type ToJSONString<In, Out extends string = string> = Encoded<In, Out>
+
+export type JSONScalar = null | boolean | number | string
+export type JSONObject = {
+  [key: string]: JSONUnknown | Phantom<unknown>
+}
+export type JSONUnknown = JSONScalar | JSONObject | JSONUnknown[]
+
+/**
+ * JSON representation
+ */
+export type ToJSON<In, Out extends JSONUnknown = IntoJSON<In>> = Encoded<
+  In,
+  Out
+>
+
+export type IntoJSON<T> = T extends JSONScalar
+  ? T
+  : T extends { toJSON(): infer U }
+  ? IntoJSON<U>
+  : T extends Array<infer U>
+  ? IntoJSON<U>[]
+  : T extends JSONObject
+  ? IntoJSONObject<T>
+  : never
+
+export type IntoJSONObject<T extends JSONObject> = {
+  [K in keyof T]: IntoJSON<T[K]>
+}
 
 /**
  * [Multicodec code] usually used to tag [multiformat].

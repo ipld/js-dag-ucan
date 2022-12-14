@@ -1,4 +1,11 @@
-import type { ByteView, MulticodecCode } from "./ucan.js"
+import type {
+  ByteView,
+  MulticodecCode,
+  ToJSON,
+  ToString,
+  JSONUnknown,
+  UCAN,
+} from "./ucan.js"
 
 /**
  * Multicodec code corresponding to the byteprefix of the [VarSig]. It is
@@ -50,6 +57,13 @@ export interface Signature<T = unknown, Alg extends SigAlg = SigAlg>
    */
   raw: Uint8Array
 }
+
+export type SignatureJSON<T extends Signature = Signature> = ToJSON<
+  T,
+  {
+    "/": { bytes: ToString<T> }
+  }
+>
 
 /**
  * Just like {@link Verifier}, except definitely async.

@@ -263,7 +263,7 @@ export const parse = (signature, base) =>
 /**
  * @template {UCAN.Signature} Signature
  * @param {Signature} signature
- * @returns {UCAN.ToJSON<Signature, {'/': { bytes: UCAN.ToString<Signature> }}>}
+ * @returns {UCAN.SignatureJSON<Signature>}
  */
 export const toJSON = signature => ({
   "/": { bytes: base64.baseEncode(signature) },
@@ -271,7 +271,7 @@ export const toJSON = signature => ({
 
 /**
  * @template {UCAN.Signature} Signature
- * @param {UCAN.ToJSON<Signature, {'/': { bytes: UCAN.ToString<Signature> }}>} json
+ * @param {UCAN.SignatureJSON<Signature>} json
  * @returns {Signature}
  */
 export const fromJSON = json =>
