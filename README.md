@@ -1,4 +1,7 @@
-# @ipld/dag-ucan
+<div align="center">
+  <img src="https://bafybeias2fwd2s26kgoor65vwzryuuxzjzitixhh3dfu7lad2pxnoo3sum.ipfs.w3s.link/image.png" width="250"/>
+  <h1>@ipld/dag-ucan</h1>
+</div>
 
 An implementation of [UCAN][]s in [IPLD][] via [Advanced Data Layout (ADL)](ADL), designed for use with [multiformats][].
 
