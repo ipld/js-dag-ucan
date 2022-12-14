@@ -224,6 +224,7 @@ export interface View<C extends Capabilities = Capabilities> extends Model<C> {
 
   encode(): ByteView<UCAN<C>>
   format(): JWT<C>
+  toJSON(): UCANJSON<this>
 }
 
 /**
