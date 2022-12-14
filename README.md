@@ -1,73 +1,14 @@
-<div align="center">
-  <img src="https://bafybeias2fwd2s26kgoor65vwzryuuxzjzitixhh3dfu7lad2pxnoo3sum.ipfs.w3s.link/image.png" width="250"/>
-  <h1>@ipld/dag-ucan</h1>
-</div>
+# @ipld/dag-ucan
 
 An implementation of [UCAN][]s in [IPLD][] via [Advanced Data Layout (ADL)](ADL), designed for use with [multiformats][].
 
+![mascot][]
+
+
 ## Overview
 
-This library implements [ADL][] for representing [UCAN]s natively in [IPLD][]. It uses [DAG-CBOR][] as a primary encoding, which is hash consistent and more compact than a secondary RAW JWT encoding. Every UCAN in either encoding can be formatted into a valid JWT string and consumed by other spec compliant [UCAN][] implementations. However [UCAN][]s issued by other libraries may end up in represented in secondory RAW JWT encoding, that is because whitespaces and key order in JWT affects signatures and there for can't be represented accurately in CBOR. When parsing UCANs library will use CBOR representation and fallback to RAW JWT, which allows interop with all existing tokens in the wild.
+This library provides an [ADL][] for representing [UCAN]s natively in [IPLD][]. It implements [UCAN IPLD][] specification and uses [DAG-CBOR][] as a primary encoding, which is hash consistent and more compact than a secondary RAW JWT encoding. Every UCAN in either encoding can be formatted into a valid JWT string and consumed by other spec compliant [UCAN][] implementations. However [UCAN][]s issued by other libraries may end up in represented in secondory RAW JWT encoding, that is because whitespaces and key order in JWT affects signatures and there for can't be represented accurately in CBOR. When parsing UCANs library will use CBOR representation and fallback to RAW JWT, which allows interop with all existing tokens in the wild.
 
-### Primary Representation
-
-UCANs in primary representation are encoded in [DAG-CBOR][] and have following
-[IPLD schema][]:
-
-```ipldsch
-type UCAN struct {
-  v String
-  s Signature
-
-  -- Issuer DID (sender)
-  iss SigningKey
-  -- Audience DID (receiver)
-  aud SigningKey
-  -- Not Before UTC Unix Timestamp (valid from)
-  nbf optional Int
-  -- Expiration UTC Unix Timestamp (valid until)
-  exp nullable Int
-  -- Nonce
-  nnc optional String
-  -- Facts (asserted, signed data)
-  fct [Fact]
-  -- Attenuations
-  att [Capability]
-  -- Proof of delegation (hash-linked UCANs)
-  prf [&UCAN]
-} representation map {
-  field fct default []
-  field prf default []
-}
-
-exp
-
-type Capability struct {
-  with Resource
-  can Ability
-  nb Any
-}
-
-type Fact { String: Any }
-
-
--- The resource pointer in URI format
-type Resource = String
-
--- Must be all lower-case `/` delimeted with at least one path segment
-type Ability = String
-
--- Signature is computed by seralizing header & body
--- into corresponding JSON with DAG-JSON (to achieve
--- for hash consitency) then encoded into base64 and
--- then signed by issuers private key
-type Signature = Bytes
-
--- multicodec tagged public key
--- 0xed       Ed25519
--- 0x1205     RSA
-type SigningKey = Bytes
-```
 
 ## API
 
@@ -154,7 +95,9 @@ const delegation = await UCAN.issue({
 
 [ipld]: https://ipld.io/
 [ucan]: https://github.com/ucan-wg/spec/
+[ucan ipld]: https://github.com/ucan-wg/ucan-ipld/
 [ipld schema]: https://ipld.io/docs/schemas/using/authoring-guide/
 [dag-cbor]: https://ipld.io/docs/codecs/known/dag-cbor/
 [multiformats]: https://github.com/multiformats/js-multiformats
 [adl]: https://ipld.io/docs/advanced-data-layouts/
+[mascot]:https://bafybeiap2x7s5hjxdghbpfzd7kkc6l5vqgbwnj4tjbcivnfjfcobwuqo44.ipfs.w3s.link/UCAN%20IPLD%20Mascot.png
