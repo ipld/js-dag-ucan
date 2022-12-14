@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.1.0](https://github.com/ipld/js-dag-ucan/compare/v3.0.1...v3.1.0) (2022-12-14)
+
+
+### Features
+
+* add mascot ([#71](https://github.com/ipld/js-dag-ucan/issues/71)) ([edb87b1](https://github.com/ipld/js-dag-ucan/commit/edb87b1e03edb46f5a82fa36f12fe5746dd994ca))
+* implement toJSON methods ([#72](https://github.com/ipld/js-dag-ucan/issues/72)) ([c71603c](https://github.com/ipld/js-dag-ucan/commit/c71603c50675dde24c06dc83aa6195e8d5252a71))
+
 ## [3.0.1](https://github.com/ipld/js-dag-ucan/compare/v3.0.0...v3.0.1) (2022-12-02)
 
 
