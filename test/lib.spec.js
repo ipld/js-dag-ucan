@@ -1453,7 +1453,8 @@ describe("JSON.stringify", () => {
   })
 
   it("proof-chain", async () => {
-    const expiration = UCAN.now()
+    const nbf = UCAN.now()
+    const expiration = nbf + 100
     const link = Link.parse(
       "bafybeifpzwjvqgnael34taig2dqbp7snfhodyeh4yrmoqvvp2sks23n2hu"
     )
@@ -1474,6 +1475,8 @@ describe("JSON.stringify", () => {
           nb: { link, bytes },
         },
       ],
+      notBefore: nbf,
+      nonce: "something",
       expiration,
       proofs: [proof],
       facts: [{ none }, { bytes }],
@@ -1485,6 +1488,8 @@ describe("JSON.stringify", () => {
       v: UCAN.VERSION,
       s: { "/": { bytes: base64.baseEncode(ucan.signature) } },
       exp: expiration,
+      nbf,
+      nnc: "something",
       att: [
         {
           can: "store/put",
