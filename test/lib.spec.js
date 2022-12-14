@@ -4,12 +4,13 @@ import { assert } from "chai"
 import { alice, bob, mallory, JWT_UCAN, JWT_UCAN_SIG } from "./fixtures.js"
 import * as TSUCAN from "./ts-ucan.cjs"
 import * as CBOR from "../src/codec/cbor.js"
+import * as Link from "multiformats/link"
 import { encode as encodeCBOR } from "@ipld/dag-cbor"
 import * as RAW from "multiformats/codecs/raw"
 import * as UTF8 from "../src/utf8.js"
 import * as DID from "../src/did.js"
 import { identity } from "multiformats/hashes/identity"
-import { base64url } from "multiformats/bases/base64"
+import { base64, base64url } from "multiformats/bases/base64"
 import {
   decodeAuthority,
   createRSAIssuer,
@@ -1065,8 +1066,6 @@ describe("encode <-> decode", () => {
 
     const { iss, aud, s, nnc, ...body } = model
 
-    console.log(body)
-
     const bytes = encodeCBOR({
       ...body,
       iss: DID.encode(iss),
@@ -1418,5 +1417,100 @@ describe("verify", () => {
       await UCAN.verifySignature(ucan, decodeAuthority(DID.parse(bob.did()))),
       false
     )
+  })
+})
+
+describe("JSON.stringify", () => {
+  it("basic", async () => {
+    const expiration = UCAN.now()
+
+    const ucan = await UCAN.issue({
+      issuer: alice,
+      audience: bob,
+      capabilities: [
+        {
+          can: "store/put",
+          with: alice.did(),
+        },
+      ],
+      expiration,
+    })
+
+    assert.deepEqual(JSON.parse(JSON.stringify(ucan)), {
+      iss: alice.did(),
+      aud: bob.did(),
+      v: UCAN.VERSION,
+      s: { "/": { bytes: base64.baseEncode(ucan.signature) } },
+      exp: expiration,
+      att: [
+        {
+          can: "store/put",
+          with: alice.did(),
+        },
+      ],
+      prf: [],
+    })
+  })
+
+  it("proof-chain", async () => {
+    const nbf = UCAN.now()
+    const expiration = nbf + 100
+    const link = Link.parse(
+      "bafybeifpzwjvqgnael34taig2dqbp7snfhodyeh4yrmoqvvp2sks23n2hu"
+    )
+    /** @type {Link.Link<any, number, number, 1>} */
+    const proof = Link.parse(
+      "bafybeiduj5jlxuw6gfkqjivtn5vdin3ydqgshxiqplgrtyqscwisfi4iky"
+    )
+    const none = Link.parse("bafkqaaa")
+    const bytes = UTF8.encode("hello world")
+
+    const ucan = await UCAN.issue({
+      issuer: alice,
+      audience: bob,
+      capabilities: [
+        {
+          can: "store/put",
+          with: alice.did(),
+          nb: { link, bytes },
+        },
+      ],
+      notBefore: nbf,
+      nonce: "something",
+      expiration,
+      proofs: [proof],
+      facts: [{ none }, { bytes }],
+    })
+
+    assert.deepEqual(JSON.parse(JSON.stringify(ucan)), {
+      iss: alice.did(),
+      aud: bob.did(),
+      v: UCAN.VERSION,
+      s: { "/": { bytes: base64.baseEncode(ucan.signature) } },
+      exp: expiration,
+      nbf,
+      nnc: "something",
+      att: [
+        {
+          can: "store/put",
+          with: alice.did(),
+          nb: {
+            link: { "/": link.toString() },
+            bytes: { "/": { bytes: base64.baseEncode(bytes) } },
+          },
+        },
+      ],
+      prf: [
+        {
+          "/": proof.toString(),
+        },
+      ],
+      fct: [
+        { none: { "/": none.toString() } },
+        {
+          bytes: { "/": { bytes: base64.baseEncode(bytes) } },
+        },
+      ],
+    })
   })
 })

@@ -1,5 +1,12 @@
 import * as UCAN from "./ucan.js"
 import * as DID from "./did.js"
+import { encode as encodeJSON } from "@ipld/dag-json"
+import { decode as decodeUTF8 } from "./utf8.js"
+
+/**
+ * @param {unknown} data
+ */
+const toJSON = data => JSON.parse(decodeUTF8(encodeJSON(data)))
 
 /**
  * @template {UCAN.Capabilities} C
@@ -107,5 +114,27 @@ export class View {
   }
   get prf() {
     return this.model.prf
+  }
+
+  /**
+   * @returns {UCAN.ToJSON<UCAN.UCAN<C>, UCAN.UCANJSON<this>>}
+   */
+  toJSON() {
+    const { v, iss, aud, s, att, prf, exp, fct, nnc, nbf } = this.model
+
+    return {
+      iss,
+      aud,
+      v,
+      s,
+      exp,
+      ...toJSON({
+        att,
+        prf,
+        ...(fct.length > 0 && { fct }),
+      }),
+      ...(nnc != null && { nnc }),
+      ...(nbf && { nbf }),
+    }
   }
 }

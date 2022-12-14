@@ -1,6 +1,6 @@
 import * as UCAN from "./ucan.js"
 import { varint } from "multiformats"
-import { base64url } from "multiformats/bases/base64"
+import { base64url, base64 } from "multiformats/bases/base64"
 import * as UTF8 from "./utf8.js"
 
 export const NON_STANDARD = 0xd000
@@ -104,6 +104,10 @@ class Signature extends Uint8Array {
     const value = new Uint8Array(buffer, byteOffset + codeSize + rawSize, size)
     Object.defineProperties(this, { raw: { value } })
     return value
+  }
+
+  toJSON() {
+    return toJSON(this)
   }
 }
 
@@ -255,3 +259,20 @@ export const parse = (signature, base) =>
   /** @type {UCAN.Signature<T, A>} */ (
     decode((base || base64url).decode(signature))
   )
+
+/**
+ * @template {UCAN.Signature} Signature
+ * @param {Signature} signature
+ * @returns {UCAN.SignatureJSON<Signature>}
+ */
+export const toJSON = signature => ({
+  "/": { bytes: base64.baseEncode(signature) },
+})
+
+/**
+ * @template {UCAN.Signature} Signature
+ * @param {UCAN.SignatureJSON<Signature>} json
+ * @returns {Signature}
+ */
+export const fromJSON = json =>
+  /** @type {Signature} */ (decode(base64.baseDecode(json["/"].bytes)))

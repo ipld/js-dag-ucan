@@ -86,7 +86,7 @@ export const decode = bytes => {
     case RSA:
     case P384:
     case P521:
-      return /** @type {UCAN.PrincipalView<ID>} */ (
+      return /** @type {UCAN.PrincipalView<any>} */ (
         new DIDKey(buffer, byteOffset, byteLength)
       )
     case DID_CORE:
@@ -117,6 +117,10 @@ class DID extends Uint8Array {
   did() {
     const bytes = new Uint8Array(this.buffer, this.byteOffset + METHOD_OFFSET)
     return /** @type {ID} */ (`did:${UTF8.decode(bytes)}`)
+  }
+
+  toJSON() {
+    return this.did()
   }
 }
 

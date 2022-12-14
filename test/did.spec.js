@@ -26,4 +26,8 @@ describe("DID", () => {
   it("DID.encode <-> DID.decode", () => {
     assert.equal(DID.decode(DID.encode(alice)).did(), alice.did())
   })
+
+  it("JSON.stringify", () => {
+    assert.deepEqual(JSON.stringify(DID.parse(alice.did())), `"${alice.did()}"`)
+  })
 })

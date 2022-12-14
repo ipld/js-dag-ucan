@@ -6,7 +6,7 @@ import { alice, bob, mallory, JWT_UCAN, JWT_UCAN_SIG } from "./fixtures.js"
 import * as Signature from "../src/signature.js"
 import { varint } from "multiformats"
 import * as UTF8 from "../src/utf8.js"
-import { base64url } from "multiformats/bases/base64"
+import { base64url, base64 } from "multiformats/bases/base64"
 
 describe("Signature", () => {
   const dataset = [
@@ -69,6 +69,10 @@ describe("Signature", () => {
       assert.deepEqual(sig.code, code)
       assert.deepEqual(sig.algorithm, algorithm)
       assert.deepEqual(sig.raw, raw)
+      assert.deepEqual(
+        JSON.stringify(sig),
+        JSON.stringify({ "/": { bytes: base64.baseEncode(sig) } })
+      )
     })
 
     it(`roundtrip ${title}`, () => {
@@ -76,6 +80,7 @@ describe("Signature", () => {
       const sig = Signature.createNamed(algorithm, raw)
 
       assert.deepEqual(sig, Signature.parse(Signature.format(sig)))
+      assert.deepEqual(sig, Signature.fromJSON(Signature.toJSON(sig)))
     })
   }
 
