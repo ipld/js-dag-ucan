@@ -26,6 +26,8 @@ export type {
   ByteView,
 }
 
+export type Alg = "EdDSA" | "RS256"
+
 export type Code =
   | MulticodecCode<typeof CBOR_CODE, "CBOR">
   | MulticodecCode<typeof RAW_CODE, "Raw">
@@ -115,7 +117,7 @@ export type Version = `${number}.${number}.${number}`
  */
 export interface JWTHeader {
   ucv: Version
-  alg: "EdDSA" | "RS256"
+  alg: string
   typ: "JWT"
 }
 
@@ -131,7 +133,7 @@ export interface JWTPayload<C extends Capabilities = Capabilities> {
   nnc?: Nonce
   nbf?: UTCUnixTimestamp
   fct?: Fact[]
-  prf?: ToString<Link>
+  prf?: ToString<Link>[]
 }
 
 /**
@@ -260,8 +262,9 @@ export interface UCANOptions<
 export interface Link<
   C extends Capabilities = Capabilities,
   Encoding extends MulticodecCode = MulticodecCode,
-  SigAlg extends Crypto.SigAlg = Crypto.SigAlg
-> extends IPLDLink<UCAN<C>, Encoding, SigAlg> {}
+  SigAlg extends Crypto.SigAlg = Crypto.SigAlg,
+  Version extends LinkVersion = LinkVersion
+> extends IPLDLink<UCAN<C>, Encoding, SigAlg, Version> {}
 
 /**
  * Represents a UCAN IPLD block

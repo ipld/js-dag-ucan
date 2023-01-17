@@ -233,7 +233,7 @@ export const decode = bytes => {
  * @template {unknown} T
  * @template {number} A
  * @param {UCAN.Signature<T, A>} signature
- * @returns {UCAN.ByteView<UCAN.Signature<T, A>>}
+ * @returns {UCAN.Signature<T, A>}
  */
 export const encode = signature => decode(signature)
 

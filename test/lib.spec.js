@@ -1073,6 +1073,7 @@ describe("encode <-> decode", () => {
       s: "hello",
     })
 
+    // @ts-ignore we are forcing a string to test decode throws
     assert.throws(() => UCAN.decode(bytes))
   })
 })

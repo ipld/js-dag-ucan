@@ -40,7 +40,7 @@ export const encode = model => {
 
   return CBOR.encode({
     // leave out optionals unless they are set
-    ...(fct.length > 0 && { fct }),
+    ...(fct.length > 0 ? { fct }: { fct: [] }),
     ...(nnc != null && { nnc }),
     ...(nbf && { nbf }),
     ...payload,
@@ -75,7 +75,7 @@ const encodeSignature = (signature, context) => {
  * @returns {UCAN.View<C>}
  */
 export const decode = bytes => {
-  /** @type {Record<string, unknown>} */
+  /** @type {UCAN.Model<C>} */
   const model = CBOR.decode(bytes)
   return new CBORView({
     ...readPayload(model),
