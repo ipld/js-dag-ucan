@@ -40,7 +40,7 @@ export const encode = model => {
 
   return CBOR.encode({
     // leave out optionals unless they are set
-    ...(fct.length > 0 ? { fct }: { fct: [] }),
+    ...(fct && fct.length > 0 && { fct }),
     ...(nnc != null && { nnc }),
     ...(nbf && { nbf }),
     ...payload,

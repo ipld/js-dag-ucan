@@ -45,7 +45,7 @@ export const formatSignature = signature => base64url.baseEncode(signature.raw)
 
 /**
  * @param {UCAN.Version} v
- * @param {string} alg
+ * @param {UCAN.Alg} alg
  * @returns {UCAN.ByteView<UCAN.JWTHeader>}
  */
 const encodeHeader = (v, alg) =>
@@ -68,7 +68,7 @@ const encodePayload = data =>
     exp: data.exp,
     prf: data.prf.map(encodeProof),
     // leave out optionals and empty fields
-    ...(data.fct.length > 0 && { fct: data.fct }),
+    ...(data.fct && data.fct.length > 0 && { fct: data.fct }),
     ...(data.nnc && { nnc: data.nnc }),
     ...(data.nbf && { nbf: data.nbf }),
   })

@@ -66,7 +66,7 @@ export class View {
    * @returns {UCAN.Fact[]}
    */
   get facts() {
-    return this.model.fct
+    return this.model.fct || []
   }
 
   /**
@@ -131,7 +131,7 @@ export class View {
       ...toJSON({
         att,
         prf,
-        ...(fct.length > 0 && { fct }),
+        ...(fct && fct.length > 0 && { fct }),
       }),
       ...(nnc != null && { nnc }),
       ...(nbf && { nbf }),
