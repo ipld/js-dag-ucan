@@ -38,16 +38,18 @@ export const from = model => new CBORView(model)
 export const encode = model => {
   const { fct, nnc, nbf, ...payload } = readPayload(model)
 
-  return CBOR.encode({
-    // leave out optionals unless they are set
-    ...(fct.length > 0 && { fct }),
-    ...(nnc != null && { nnc }),
-    ...(nbf && { nbf }),
-    ...payload,
-    // add version and signature
-    v: readVersion(model.v, "v"),
-    s: encodeSignature(model.s, "s"),
-  })
+  return /** @type {Uint8Array} */ (
+    CBOR.encode({
+      // leave out optionals unless they are set
+      ...(fct.length > 0 && { fct }),
+      ...(nnc != null && { nnc }),
+      ...(nbf && { nbf }),
+      ...payload,
+      // add version and signature
+      v: readVersion(model.v, "v"),
+      s: encodeSignature(model.s, "s"),
+    })
+  )
 }
 
 /**
@@ -75,7 +77,6 @@ const encodeSignature = (signature, context) => {
  * @returns {UCAN.View<C>}
  */
 export const decode = bytes => {
-  /** @type {Record<string, unknown>} */
   const model = CBOR.decode(bytes)
   return new CBORView({
     ...readPayload(model),

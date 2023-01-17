@@ -29,9 +29,9 @@
     "check": "tsc --build"
   },
   "dependencies": {
-    "@ipld/dag-cbor": "^8.0.0",
-    "@ipld/dag-json": "^9.0.1",
-    "multiformats": "^10.0.0"
+    "@ipld/dag-cbor": "^9.0.0",
+    "@ipld/dag-json": "^10.0.0",
+    "multiformats": "^11.0.0"
   },
   "devDependencies": {
     "@stablelib/ed25519": "^1.0.3",
@@ -45,7 +45,7 @@
     "mocha": "^10.0.0",
     "nyc": "^15.1.0",
     "playwright-test": "^8.1.1",
-    "typescript": "4.8.3",
+    "typescript": "^4.9.4",
     "ucans": "0.9.0"
   },
   "type": "module",

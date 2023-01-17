@@ -115,7 +115,7 @@ export type Version = `${number}.${number}.${number}`
  */
 export interface JWTHeader {
   ucv: Version
-  alg: "EdDSA" | "RS256"
+  alg: "EdDSA" | "RS256" | string
   typ: "JWT"
 }
 
@@ -131,7 +131,7 @@ export interface JWTPayload<C extends Capabilities = Capabilities> {
   nnc?: Nonce
   nbf?: UTCUnixTimestamp
   fct?: Fact[]
-  prf?: ToString<Link>
+  prf?: ToString<Link>[]
 }
 
 /**

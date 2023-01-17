@@ -1,8 +1,8 @@
 lockfileVersion: 5.4
 
 specifiers:
-  '@ipld/dag-cbor': ^8.0.0
-  '@ipld/dag-json': ^9.0.1
+  '@ipld/dag-cbor': ^9.0.0
+  '@ipld/dag-json': ^10.0.0
   '@noble/ed25519': ^1.6.0
   '@stablelib/ed25519': ^1.0.3
   '@types/chai': ^4.3.0
@@ -12,16 +12,16 @@ specifiers:
   c8: ^7.11.0
   chai: ^4.3.6
   mocha: ^10.0.0
-  multiformats: ^10.0.0
+  multiformats: ^11.0.0
   nyc: ^15.1.0
   playwright-test: ^8.1.1
-  typescript: 4.8.3
+  typescript: ^4.9.4
   ucans: 0.9.0
 
 dependencies:
-  '@ipld/dag-cbor': 8.0.0
-  '@ipld/dag-json': 9.0.1
-  multiformats: 10.0.0
+  '@ipld/dag-cbor': 9.0.0
+  '@ipld/dag-json': 10.0.0
+  multiformats: 11.0.0
 
 devDependencies:
   '@noble/ed25519': 1.7.1
@@ -35,7 +35,7 @@ devDependencies:
   mocha: 10.0.0
   nyc: 15.1.0
   playwright-test: 8.1.1
-  typescript: 4.8.3
+  typescript: 4.9.4
   ucans: 0.9.0
 
 packages:
@@ -250,20 +250,20 @@ packages:
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
     dev: true
 
-  /@ipld/dag-cbor/8.0.0:
-    resolution: {integrity: sha512-VfedC21yAD/ZIahcrHTeMcc17kEVRlCmHQl0JY9/Rwbd102v0QcuXtBN8KGH8alNO82S89+H6MM/hxP85P4Veg==}
+  /@ipld/dag-cbor/9.0.0:
+    resolution: {integrity: sha512-zdsiSiYDEOIDW7mmWOYWC9gukjXO+F8wqxz/LfN7iSwTfIyipC8+UQrCbPupFMRb/33XQTZk8yl3My8vUQBRoA==}
     engines: {node: '>=16.0.0', npm: '>=7.0.0'}
     dependencies:
-      cborg: 1.9.5
-      multiformats: 10.0.2
+      cborg: 1.10.0
+      multiformats: 11.0.0
     dev: false
 
-  /@ipld/dag-json/9.0.1:
-    resolution: {integrity: sha512-dL5Xhrk0XXoq3lSsY2LNNraH2Nxx4nlgQwSarl2J3oir2jBDQEiBDW8bjgr30ni8/epdWDhXm5mdxat8dFWwGQ==}
+  /@ipld/dag-json/10.0.0:
+    resolution: {integrity: sha512-u/PfR2sT9AiZZDUl1VNspx3OP13zuvBXAd3sKiURlSOoWfoLigxTCs+sXeaXA0hoXU7u1M2DECMt4LCUHuApSA==}
     engines: {node: '>=16.0.0', npm: '>=7.0.0'}
     dependencies:
-      cborg: 1.9.5
-      multiformats: 10.0.2
+      cborg: 1.10.0
+      multiformats: 11.0.0
     dev: false
 
   /@istanbuljs/load-nyc-config/1.1.0:
@@ -674,8 +674,8 @@ packages:
     resolution: {integrity: sha512-oIs7+JL3K9JRQ3jPZjlH6qyYDp+nBTCais7hjh0s+fuBwufc7uZ7hPYMXrDOJhV360KGMTcczMRObk0/iMqZRg==}
     dev: true
 
-  /cborg/1.9.5:
-    resolution: {integrity: sha512-fLBv8wmqtlXqy1Yu+pHzevAIkW6k2K0ZtMujNzWphLsA34vzzg9BHn+5GmZqOJkSA9V7EMKsWrf6K976c1QMjQ==}
+  /cborg/1.10.0:
+    resolution: {integrity: sha512-/eM0JCaL99HDHxjySNQJLaolZFVdl6VA0/hEKIoiQPcQzE5LrG5QHdml0HaBt31brgB9dNe1zMr3f8IVrpotRQ==}
     hasBin: true
     dev: false
 
@@ -2021,13 +2021,8 @@ packages:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
     dev: true
 
-  /multiformats/10.0.0:
-    resolution: {integrity: sha512-qEj/ansAK86ufzupmp8B/JbiNSLJhNFcqW2Aa1dWxQc0OfoorpknwKkJeXAbtZ62AJlA6qKsGrCY3OjdFWZOrQ==}
-    engines: {node: '>=16.0.0', npm: '>=7.0.0'}
-    dev: false
-
-  /multiformats/10.0.2:
-    resolution: {integrity: sha512-nJEHLFOYhO4L+aNApHhCnWqa31FyqAHv9Q77AhmwU3KsM2f1j7tuJpCk5ByZ33smzycNCpSG5klNIejIyfFx2A==}
+  /multiformats/11.0.0:
+    resolution: {integrity: sha512-vqF8bmMtbxw9Zn3eTpk0OZQdBVmAT/+bTGwXb3C2qCNkp45aJMmkCDds3lrtObECWPf+KFjFtTOHkvCaT/c/xQ==}
     engines: {node: '>=16.0.0', npm: '>=7.0.0'}
     dev: false
 
@@ -2771,8 +2766,8 @@ packages:
       is-typedarray: 1.0.0
     dev: true
 
-  /typescript/4.8.3:
-    resolution: {integrity: sha512-goMHfm00nWPa8UvR/CPSvykqf6dVV8x/dp0c5mFTMTIu0u0FlGWRioyy7Nn0PGAdHxpJZnuO/ut+PpQ8UiHAig==}
+  /typescript/4.9.4:
+    resolution: {integrity: sha512-Uz+dTXYzxXXbsFpM86Wh3dKCxrQqUcVMxwU54orwlJjOpO3ao8L7j5lH+dWfTwgCwIuM9GQ2kvVotzYJMXTBZg==}
     engines: {node: '>=4.2.0'}
     hasBin: true
     dev: true
