@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.2.0](https://github.com/ipld/js-dag-ucan/compare/v3.1.1...v3.2.0) (2023-01-17)
+
+
+### Features
+
+* update multiformats and other deps ([#77](https://github.com/ipld/js-dag-ucan/issues/77)) ([6c07bbe](https://github.com/ipld/js-dag-ucan/commit/6c07bbe43d6debfa52880308ca68e140e14685fb))
+
 ## [3.1.0](https://github.com/ipld/js-dag-ucan/compare/v3.0.1...v3.1.0) (2022-12-14)
 
 
