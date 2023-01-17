@@ -1,17 +1,5 @@
 # Changelog
 
-## [3.1.1](https://github.com/ipld/js-dag-ucan/compare/v3.1.0...v3.1.1) (2022-12-14)
-
-
-### Features
-
-* add toJSON to a View interface ([#75](https://github.com/ipld/js-dag-ucan/issues/75)) ([b380c8d](https://github.com/ipld/js-dag-ucan/commit/b380c8d14d07744517cb93037a6f0a23497e63a0))
-
-
-### Miscellaneous Chores
-
-* release 3.1.1 ([7b6b7ef](https://github.com/ipld/js-dag-ucan/commit/7b6b7efc4cf6e12e9b1d3eab1d89d29c74abbf9c))
-
 ## [3.1.0](https://github.com/ipld/js-dag-ucan/compare/v3.0.1...v3.1.0) (2022-12-14)
 
 

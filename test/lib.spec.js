@@ -1073,7 +1073,10 @@ describe("encode <-> decode", () => {
       s: "hello",
     })
 
-    assert.throws(() => UCAN.decode(bytes))
+    assert.throws(() =>
+      // @ts-expect-error - Property 's' is a 'string' and not `Signature<string, SigAlg>`
+      UCAN.decode(bytes)
+    )
   })
 })
 

@@ -75,5 +75,7 @@ const encodePayload = data =>
 
 /**
  * @param {UCAN.Link} proof
+ * @returns {UCAN.ToString<UCAN.Link>}
  */
-const encodeProof = proof => proof.toString()
+const encodeProof = proof =>
+  /** @type {UCAN.ToString<UCAN.Link>} */ (proof.toString())
