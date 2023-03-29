@@ -99,4 +99,24 @@ describe("Signature", () => {
       /Unknown signature algorithm code/
     )
   })
+
+  it(".verify can be used to verify signature", async () => {
+    const payload = UTF8.encode(`give me some bytes`)
+    const signature = await alice.sign(payload)
+
+    const result = await signature.verify(alice, payload)
+    assert.deepEqual(result, { ok: {} }, "succeeds if payload is the same")
+
+    assert.deepEqual(
+      `${(await signature.verify(alice, payload.slice(0, -1))).error?.message}`,
+      "Invalid signature",
+      "fails if payload is different"
+    )
+
+    assert.deepEqual(
+      (await signature.verify(bob, payload)).error?.message,
+      "Invalid signature",
+      "fails if signer is different"
+    )
+  })
 })

@@ -77,9 +77,9 @@ export const nameCode = name => {
 /**
  * @template {unknown} T
  * @template {number} A
- * @implements {UCAN.Signature<T, A>}
+ * @implements {UCAN.SignatureView<T, A>}
  */
-class Signature extends Uint8Array {
+export class Signature extends Uint8Array {
   get code() {
     const [code] = varint.decode(this)
     Object.defineProperties(this, { code: { value: code } })
@@ -104,6 +104,24 @@ class Signature extends Uint8Array {
     const value = new Uint8Array(buffer, byteOffset + codeSize + rawSize, size)
     Object.defineProperties(this, { raw: { value } })
     return value
+  }
+
+  /**
+   * Verify that this signature was created by the given key.
+   *
+   * @param {UCAN.Crypto.Verifier<A>} signer
+   * @param {UCAN.ByteView<T>} payload
+   */
+  async verify(signer, payload) {
+    try {
+      if ((await signer.verify(payload, this)) === true) {
+        return { ok: {} }
+      } else {
+        throw new Error("Invalid signature")
+      }
+    } catch (cause) {
+      return { error: /** @type {Error} */ (cause) }
+    }
   }
 
   toJSON() {
@@ -144,7 +162,7 @@ const size = signature => {
  * @template {number} A
  * @param {A} code
  * @param {Uint8Array} raw
- * @returns {UCAN.Signature<T, A>}
+ * @returns {UCAN.SignatureView<T, A>}
  */
 export const create = (code, raw) => {
   const _ = codeName(code)
@@ -167,7 +185,7 @@ export const create = (code, raw) => {
  * @template {unknown} T
  * @param {string} name
  * @param {Uint8Array} raw
- * @return {UCAN.Signature<T>}
+ * @return {UCAN.SignatureView<T>}
  */
 export const createNamed = (name, raw) => {
   const code = nameCode(name)
@@ -180,7 +198,7 @@ export const createNamed = (name, raw) => {
  * @template {unknown} T
  * @param {string} name
  * @param {Uint8Array} raw
- * @return {UCAN.Signature<T, typeof NON_STANDARD>}
+ * @return {UCAN.SignatureView<T, typeof NON_STANDARD>}
  */
 export const createNonStandard = (name, raw) => {
   const code = NON_STANDARD
