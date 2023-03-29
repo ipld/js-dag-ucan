@@ -58,18 +58,6 @@ export interface Signature<T = unknown, Alg extends SigAlg = SigAlg>
   raw: Uint8Array
 }
 
-export interface SignatureView<T = unknown, Alg extends SigAlg = SigAlg>
-  extends Signature<T, Alg> {
-  /**
-   * Verifies that the signature was produced by the given from the given
-   * payload.
-   */
-  verify: (
-    signer: Verifier<Alg>,
-    payload: ByteView<T>
-  ) => Await<{ ok: {}; error?: void } | { error: Error; ok?: undefined }>
-}
-
 export type SignatureJSON<T extends Signature = Signature> = ToJSON<
   T,
   {
