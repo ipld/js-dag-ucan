@@ -14,6 +14,7 @@ import type { code as CBOR_CODE } from "@ipld/dag-cbor"
 import * as Crypto from "./crypto.js"
 
 export * from "./crypto.js"
+export * as Crypto from "./crypto.js"
 export type {
   MultibaseEncoder,
   MultibaseDecoder,
