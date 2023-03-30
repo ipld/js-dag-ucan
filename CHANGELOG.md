@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.3.0](https://github.com/ipld/js-dag-ucan/compare/v3.2.0...v3.3.0) (2023-03-29)
+
+
+### Features
+
+* implement signature.verify ([#82](https://github.com/ipld/js-dag-ucan/issues/82)) ([5d79a6b](https://github.com/ipld/js-dag-ucan/commit/5d79a6be19aae708556a133453aff95a574e2624))
+* verify method on signature type ([3140637](https://github.com/ipld/js-dag-ucan/commit/3140637da56acf109d9ef107918e67c444368e02))
+
 ## [3.2.0](https://github.com/ipld/js-dag-ucan/compare/v3.1.1...v3.2.0) (2023-01-17)
 
 
