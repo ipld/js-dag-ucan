@@ -1,11 +1,4 @@
-import type {
-  ByteView,
-  MulticodecCode,
-  ToJSON,
-  ToString,
-  JSONUnknown,
-  UCAN,
-} from "./ucan.js"
+import type { ByteView, MulticodecCode, ToJSON, ToString } from "./ucan.js"
 
 /**
  * Multicodec code corresponding to the byteprefix of the [VarSig]. It is
@@ -39,7 +32,7 @@ export interface Signer<Alg extends SigAlg = SigAlg> {
    *
    * Takes byte encoded payload and produces a verifiable signature.
    */
-  sign<T>(payload: ByteView<T>): Await<Signature<T, Alg>>
+  sign<T>(payload: ByteView<T>): Await<SignatureView<T, Alg>>
 }
 
 /**
@@ -98,14 +91,14 @@ export interface SyncVerifier<Alg extends SigAlg> {
  * Just like {@link Signer}, but definitely sync.
  */
 export interface SyncSigner<Alg extends SigAlg = SigAlg> {
-  sign<T>(payload: ByteView<T>): Signature<T, Alg>
+  sign<T>(payload: ByteView<T>): SignatureView<T, Alg>
 }
 
 /**
  * Just like {@link Signer}, but definitely async.
  */
 export interface AsyncSigner<Alg extends SigAlg = SigAlg> {
-  sign<T>(payload: ByteView<T>): PromiseLike<Signature<T, Alg>>
+  sign<T>(payload: ByteView<T>): PromiseLike<SignatureView<T, Alg>>
 }
 
 /**

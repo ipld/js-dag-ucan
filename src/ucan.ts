@@ -166,7 +166,7 @@ export interface Payload<C extends Capabilities = Capabilities> {
 export interface Model<C extends Capabilities = Capabilities>
   extends Header,
     Payload<C> {
-  s: Crypto.Signature<string>
+  s: Crypto.SignatureView
 }
 
 export type UCANJSON<T extends UCAN = UCAN> = ToJSON<
@@ -221,7 +221,7 @@ export interface View<C extends Capabilities = Capabilities> extends Model<C> {
   readonly facts: Fact[]
   readonly proofs: Link[]
 
-  readonly signature: Crypto.Signature
+  readonly signature: Crypto.SignatureView
 
   encode(): ByteView<UCAN<C>>
   format(): JWT<C>

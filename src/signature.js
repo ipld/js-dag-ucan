@@ -221,7 +221,7 @@ export const createNonStandard = (name, raw) => {
  * @template {unknown} T
  * @template {number} A
  * @param {UCAN.ByteView<UCAN.Signature<T, A>>} bytes
- * @returns {UCAN.Signature<T, A>}
+ * @returns {UCAN.SignatureView<T, A>}
  */
 export const view = bytes =>
   new Signature(bytes.buffer, bytes.byteOffset, bytes.byteLength)
@@ -230,7 +230,7 @@ export const view = bytes =>
  * @template {unknown} T
  * @template {number} A
  * @param {UCAN.ByteView<UCAN.Signature<T, A>>} bytes
- * @returns {UCAN.Signature<T, A>}
+ * @returns {UCAN.SignatureView<T, A>}
  */
 export const decode = bytes => {
   if (!(bytes instanceof Uint8Array)) {
@@ -241,7 +241,7 @@ export const decode = bytes => {
     )
   }
 
-  /** @type {UCAN.Signature<T, A>} */
+  /** @type {UCAN.SignatureView<T, A>} */
   const signature = view(bytes)
   const { code, algorithm, raw } = signature
   return signature
@@ -271,10 +271,10 @@ export const format = (signature, base) => (base || base64url).encode(signature)
  * @template {string} [Prefix="u"]
  * @param {UCAN.ToString<UCAN.Signature<T, A>>} signature
  * @param {UCAN.MultibaseDecoder<Prefix>} [base]
- * @returns {UCAN.Signature<T, A>}
+ * @returns {UCAN.SignatureView<T, A>}
  */
 export const parse = (signature, base) =>
-  /** @type {UCAN.Signature<T, A>} */ (
+  /** @type {UCAN.SignatureView<T, A>} */ (
     decode((base || base64url).decode(signature))
   )
 
@@ -288,9 +288,9 @@ export const toJSON = signature => ({
 })
 
 /**
- * @template {UCAN.Signature} Signature
- * @param {UCAN.SignatureJSON<Signature>} json
- * @returns {Signature}
+ * @template {unknown} T
+ * @template {UCAN.SigAlg} A
+ * @param {UCAN.SignatureJSON<UCAN.Signature<T, A>>} json
+ * @returns {UCAN.SignatureView<T, A>}
  */
-export const fromJSON = json =>
-  /** @type {Signature} */ (decode(base64.baseDecode(json["/"].bytes)))
+export const fromJSON = json => decode(base64.baseDecode(json["/"].bytes))
