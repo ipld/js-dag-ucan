@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.1](https://github.com/ipld/js-dag-ucan/compare/v3.3.0...v3.3.1) (2023-03-30)
+
+
+### Bug Fixes
+
+* update remaining types ([#83](https://github.com/ipld/js-dag-ucan/issues/83)) ([6c22d3e](https://github.com/ipld/js-dag-ucan/commit/6c22d3e438a19928cb349336f6e0acf69dddcd52))
+
 ## [3.3.0](https://github.com/ipld/js-dag-ucan/compare/v3.2.0...v3.3.0) (2023-03-29)
 
 
