@@ -60,7 +60,7 @@ export interface SignatureView<T = unknown, Alg extends SigAlg = SigAlg>
   verify: (
     signer: Verifier<Alg>,
     payload: ByteView<T>
-  ) => Await<{ ok: {}; error?: void } | { error: Error; ok?: undefined }>
+  ) => Await<{ ok: {}; error?: undefined } | { error: Error; ok?: undefined }>
 }
 
 export type SignatureJSON<T extends Signature = Signature> = ToJSON<
