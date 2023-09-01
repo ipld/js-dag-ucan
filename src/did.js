@@ -86,6 +86,9 @@ export const decode = bytes => {
     case RSA:
     case P384:
     case P521:
+    case BLS12381G1:
+    case BLS12381G2:
+    case SECP256K1:
       return /** @type {UCAN.PrincipalView<any>} */ (
         new DIDKey(buffer, byteOffset, byteLength)
       )
