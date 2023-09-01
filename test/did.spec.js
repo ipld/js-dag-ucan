@@ -59,7 +59,7 @@ describe("DID", () => {
   
   it("did fixtures", () => {
     for (const did of fixtures) {
-      assert.equal(DID.format(DID.parse(did).did(), did)
+      assert.equal(DID.parse(did).did(), did)
     }
   })
 })
