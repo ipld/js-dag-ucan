@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.4.0](https://github.com/ipld/js-dag-ucan/compare/v3.3.2...v3.4.0) (2023-09-01)
+
+
+### Features
+
+* add bls support ([#91](https://github.com/ipld/js-dag-ucan/issues/91)) ([caba494](https://github.com/ipld/js-dag-ucan/commit/caba49423dd507be3fa07164a2e392e1f51b8315))
+
 ## [3.3.2](https://github.com/ipld/js-dag-ucan/compare/v3.3.1...v3.3.2) (2023-03-30)
 
 
