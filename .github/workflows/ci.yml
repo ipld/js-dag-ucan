@@ -4,14 +4,9 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'src/**'
   pull_request:
     branches:
       - main
-    paths:
-      - 'src**'
-      - '.github/workflows/ci.yml'
   workflow_dispatch:
 
 jobs:
@@ -21,7 +16,7 @@ jobs:
     strategy:
       matrix:
         node-version:
-          - 16
+          - 22
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -46,7 +41,7 @@ jobs:
     strategy:
       matrix:
         node-version:
-          - 16
+          - 22
         os:
           - ubuntu-latest
 
@@ -71,7 +66,7 @@ jobs:
     strategy:
       matrix:
         node-version:
-          - 16
+          - 22
 
     steps:
       - name: Checkout
