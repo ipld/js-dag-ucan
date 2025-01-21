@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.4.2](https://github.com/ipld/js-dag-ucan/compare/v3.4.1...v3.4.2) (2025-01-21)
+
+
+### Bug Fixes
+
+* type errors ([#101](https://github.com/ipld/js-dag-ucan/issues/101)) ([3c48605](https://github.com/ipld/js-dag-ucan/commit/3c48605f6b73313095046118c67fb1fe3c920523))
+
 ## [3.4.1](https://github.com/ipld/js-dag-ucan/compare/v3.4.0...v3.4.1) (2025-01-21)
 
 
