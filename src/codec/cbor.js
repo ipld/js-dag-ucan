@@ -92,6 +92,7 @@ export { format }
  * @extends {View<C>}
  */
 class CBORView extends View {
+  /** @type {UCAN.MulticodecCode<typeof code, "CBOR">} */
   get code() {
     return code
   }
