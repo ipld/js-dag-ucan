@@ -31,11 +31,11 @@
   "dependencies": {
     "@ipld/dag-cbor": "^9.0.0",
     "@ipld/dag-json": "^10.0.0",
-    "multiformats": "^11.0.0"
+    "multiformats": "^13.3.1"
   },
   "devDependencies": {
-    "@stablelib/ed25519": "^1.0.3",
     "@noble/ed25519": "^1.6.0",
+    "@stablelib/ed25519": "^1.0.3",
     "@types/chai": "^4.3.0",
     "@types/mocha": "^9.1.0",
     "@web-std/fetch": "^4.0.0",
@@ -92,5 +92,5 @@
       "dist/**"
     ]
   },
-  "license": "(Apache-2.0 AND MIT)"
+  "license": "Apache-2.0 OR MIT"
 }
