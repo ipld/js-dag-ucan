@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.4.5](https://github.com/ipld/js-dag-ucan/compare/v3.4.4...v3.4.5) (2025-01-21)
+
+
+### Bug Fixes
+
+* upgrade nodejs version and de-restrict ci action ([cc8e4ae](https://github.com/ipld/js-dag-ucan/commit/cc8e4aed44f4b368af1bc5487dea01ec27f560a0))
+
 ## [3.4.4](https://github.com/ipld/js-dag-ucan/compare/v3.4.3...v3.4.4) (2025-01-21)
 
 
