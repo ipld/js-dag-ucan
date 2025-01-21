@@ -62,6 +62,7 @@ class JWTView extends View {
     super(model)
     this.model = model
   }
+  /** @type {UCAN.MulticodecCode<typeof code, "Raw">} */
   get code() {
     return code
   }

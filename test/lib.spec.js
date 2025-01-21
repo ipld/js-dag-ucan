@@ -1161,6 +1161,7 @@ describe("ts-ucan compat", () => {
 describe("api compatibility", () => {
   it("multiformats compatibility", async () => {
     const Block = await import("multiformats/block")
+    /** @type {UCAN.Model} */
     const ucan = await UCAN.issue({
       issuer: alice,
       audience: DID.parse(bob.did()),

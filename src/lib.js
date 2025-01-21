@@ -77,8 +77,8 @@ export const link = async (ucan, options) => {
  */
 export const write = async (ucan, { hasher = defaultHasher } = {}) => {
   const [code, bytes] = ucan.jwt
-    ? [JWT.code, JWT.encode(ucan)]
-    : [CBOR.code, CBOR.encode(ucan)]
+    ? [/** @type {UCAN.Code} */ (JWT.code), JWT.encode(ucan)]
+    : [/** @type {UCAN.Code} */ (CBOR.code), CBOR.encode(ucan)]
   const digest = await hasher.digest(bytes)
 
   return {
