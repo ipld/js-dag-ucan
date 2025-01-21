@@ -1,5 +1,7 @@
 # @ipld/dag-ucan
 
+![UCAN](https://img.shields.io/badge/UCAN-v0.9.1-blue)
+
 An implementation of [UCAN][]s in [IPLD][] via [Advanced Data Layout (ADL)](ADL), designed for use with [multiformats][].
 
 ![mascot][]
