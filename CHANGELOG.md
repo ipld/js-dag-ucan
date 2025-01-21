@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.4.3](https://github.com/ipld/js-dag-ucan/compare/v3.4.2...v3.4.3) (2025-01-21)
+
+
+### Bug Fixes
+
+* add license and contribute sections to README ([#103](https://github.com/ipld/js-dag-ucan/issues/103)) ([fe23d7f](https://github.com/ipld/js-dag-ucan/commit/fe23d7f792eafa3a089efe0bda8d0e884c6a00e9))
+
 ## [3.4.2](https://github.com/ipld/js-dag-ucan/compare/v3.4.1...v3.4.2) (2025-01-21)
 
 
