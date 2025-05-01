@@ -59,7 +59,7 @@ export interface SignatureView<T = unknown, Alg extends SigAlg = SigAlg>
    */
   verify: (
     signer: Verifier<Alg>,
-    payload: ByteView<T>
+    payload: ByteView<unknown>
   ) => Await<{ ok: {}; error?: undefined } | { error: Error; ok?: undefined }>
 }
 
